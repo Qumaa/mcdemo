@@ -1,4 +1,4 @@
-﻿namespace Project.World
+﻿namespace Project
 {
     public static class Project
     {

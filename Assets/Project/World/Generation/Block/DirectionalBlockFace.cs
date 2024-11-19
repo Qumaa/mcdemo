@@ -1,4 +1,4 @@
-﻿namespace Project.World
+﻿namespace Project.World.Generation.Block
 {
     public readonly struct DirectionalBlockFace
     {
