@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 
-namespace Project.World.Generation.Block
+namespace Project.World.Generation.Blocks
 {
     public class BlockMesh
     {

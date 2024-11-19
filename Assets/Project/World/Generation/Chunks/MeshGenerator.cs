@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using Project.World.Generation.Block;
+using Project.World.Generation.Blocks;
 using UnityEngine;
 
-namespace Project.World.Generation.Chunk
+namespace Project.World.Generation.Chunks
 {
     public class MeshGenerator : IMeshGenerator
     {

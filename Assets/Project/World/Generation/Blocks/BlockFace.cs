@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Project.World.Generation.Block
+namespace Project.World.Generation.Blocks
 {
     public class BlockFace
     {

@@ -1,5 +1,6 @@
-﻿using Project.World.Generation.Block;
-using Project.World.Generation.Chunk;
+﻿using Project.World.Generation.Blocks;
+using Project.World.Generation.Chunks;
+using Project.World.Generation.Terrain;
 using UnityEngine;
 
 namespace Project.World
@@ -11,8 +12,9 @@ namespace Project.World
         private void Start()
         {
             IMeshGenerator meshGenerator = new MeshGenerator(new DummyMeshProvider());
+            IBlockGenerator blockGenerator = new DummyBlockGenerator();
             
-            _meshFilter.mesh = new Chunk(meshGenerator).GenerateMesh();
+            _meshFilter.mesh = new Chunk(meshGenerator, blockGenerator).GenerateMesh();
         }
     }
 }

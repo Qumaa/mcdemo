@@ -1,4 +1,4 @@
-﻿namespace Project.World.Generation.Block
+﻿namespace Project.World.Generation.Blocks
 {
     public interface IBlockIterator
     {

@@ -1,6 +1,6 @@
-﻿using Project.World.Generation.Block;
+﻿using Project.World.Generation.Blocks;
 
-namespace Project.World.Generation.Chunk
+namespace Project.World.Generation.Chunks
 {
     public interface IMeshGenerator
     {

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Project.World.Generation.Block
+namespace Project.World.Generation.Blocks
 {
     public class DummyMeshProvider : IBlockMeshProvider
     {
@@ -12,7 +12,7 @@ namespace Project.World.Generation.Block
         }
 
         public BlockMesh GetBlockMesh(BlockType blockType) =>
-            blockType.IsEmpty ? null : _cubeMesh;
+            blockType is null ? null : _cubeMesh;
 
         private static BlockMesh CreateCubeMesh() =>
             new(CreateTopFace(), CreateBottomFace(), CreateRightFace(), CreateLeftFace(), CreateForwardFace(), CreateBackFace());
