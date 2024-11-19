@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Project.World
 {
@@ -9,7 +8,9 @@ namespace Project.World
         
         private void Start()
         {
-            _meshFilter.mesh = new Chunk(new DummyMeshGenerator()).GenerateMesh();
+            IMeshGenerator meshGenerator = new MeshGenerator(new DummyMeshProvider());
+            
+            _meshFilter.mesh = new Chunk(meshGenerator).GenerateMesh();
         }
     }
 }

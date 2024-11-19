@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 namespace Project.World
@@ -99,7 +98,7 @@ namespace Project.World
             
             public void SetBlock(int x, int y, int z, BlockType blockType)
             {
-                if (blockType is not null)
+                if (!blockType.IsEmpty)
                     AddCubeToMesh(x, y, z);
             }
 
@@ -127,5 +126,8 @@ namespace Project.World
                     _combinedNormals.Add(_cubeNormals[i]);
             }
         }
+
+        public IMeshBuilder Start(IBlockIterator iterator) =>
+            throw new System.NotImplementedException();
     }
 }

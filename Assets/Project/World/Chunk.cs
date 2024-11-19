@@ -2,21 +2,22 @@ using UnityEngine;
 
 namespace Project.World
 {
-    public class Chunk
+    public class Chunk : IBlockIterator
     {
         private const byte _SIZE = 16;
         
         private BlockType[] _blocks;
         private readonly IMeshGenerator _meshGenerator;
+        private readonly IBlockMeshProvider _blockMeshProvider;
 
         public Chunk(IMeshGenerator meshGenerator)
         {
             _meshGenerator = meshGenerator;
             _blocks = new BlockType[_SIZE * _SIZE * _SIZE];
             
-            BlockType emptyType = new();
-            for (int i = 0; i < _blocks.Length; i += 3)
-                _blocks[i] = emptyType;
+            BlockType notEmptyType = new(1);
+            for (int i = 0; i < _blocks.Length; i += 4)
+                _blocks[i] = notEmptyType;
         }
 
         public BlockType this[int x, int y, int z]
@@ -27,7 +28,7 @@ namespace Project.World
 
         public Mesh GenerateMesh()
         {
-            IMeshBuilder builder = _meshGenerator.Start();
+            IMeshBuilder builder = _meshGenerator.Start(this);
 
             for (var x = 0; x < _SIZE; x++)
             for (var y = 0; y < _SIZE; y++)
@@ -41,7 +42,7 @@ namespace Project.World
         {
             int index = VectorToIndex(x, y, z);
 
-            return index < 0 ? null : _blocks[index];
+            return index < 0 ? BlockType.Empty : _blocks[index];
         }
         
         private void SetBlockType(int x, int y, int z, BlockType type)

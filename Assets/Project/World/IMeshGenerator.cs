@@ -2,6 +2,6 @@
 {
     public interface IMeshGenerator
     {
-        IMeshBuilder Start();
+        IMeshBuilder Start(IBlockIterator iterator);
     }
 }
