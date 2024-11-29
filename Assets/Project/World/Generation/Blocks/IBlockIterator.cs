@@ -2,6 +2,8 @@
 {
     public interface IBlockIterator
     {
-        BlockType this[int x, int y, int z] { get; }
+        public int Dimensions { get; }
+        Block this[int x, int y, int z] { get; }
+        bool TryGetNext(int x, int y, int z, Direction direction, out Block block);
     }
 }

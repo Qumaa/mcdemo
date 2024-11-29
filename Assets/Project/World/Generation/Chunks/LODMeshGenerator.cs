@@ -4,30 +4,31 @@ using UnityEngine;
 
 namespace Project.World.Generation.Chunks
 {
-    public class MeshGenerator : IMeshGenerator
+    public class LODMeshGenerator : IMeshGenerator
     {
-        private readonly MeshBuilder _meshBuilder;
+        private readonly LODChunkMeshBuilder _lodChunkMeshBuilder;
 
-        public MeshGenerator(IBlockMeshProvider blockMeshProvider)
+        public LODMeshGenerator(IBlockMeshProvider blockMeshProvider, int chunkDimensions)
         {
-            _meshBuilder = new MeshBuilder(blockMeshProvider);
+            _lodChunkMeshBuilder = new LODChunkMeshBuilder(blockMeshProvider, chunkDimensions);
         }
 
-        public IMeshBuilder Start(IBlockIterator blockIterator) =>
-            _meshBuilder.Start(blockIterator);
+        public IChunkMeshBuilder Start(IBlockIterator blockIterator) =>
+            _lodChunkMeshBuilder.Start(blockIterator);
 
-        private class MeshBuilder : IMeshBuilder
+        private class LODChunkMeshBuilder : IChunkMeshBuilder
         {
-            private static readonly DirectionVectorPair[] _directionVectorPairs =
+            private static readonly Direction[] _directions =
             {
-                DirectionVectorPair.Up,
-                DirectionVectorPair.Down,
-                DirectionVectorPair.Left,
-                DirectionVectorPair.Right,
-                DirectionVectorPair.Back,
-                DirectionVectorPair.Forward
+                Direction.Up,
+                Direction.Down,
+                Direction.Left,
+                Direction.Right,
+                Direction.Back,
+                Direction.Forward
             };
             
+            private readonly int _chunkDimensions;
             private readonly IBlockMeshProvider _blockMeshProvider;
             private IBlockIterator _blockIterator;
 
@@ -35,49 +36,66 @@ namespace Project.World.Generation.Chunks
             private List<Vector3> _vertices = new();
             private List<Vector3> _normals = new();
             private List<int> _triangles = new();
+            private int _verticesScaler;
             
-            public MeshBuilder(IBlockMeshProvider blockMeshProvider) {
+            public LODChunkMeshBuilder(IBlockMeshProvider blockMeshProvider, int chunkDimensions)
+            {
                 _blockMeshProvider = blockMeshProvider;
+                _chunkDimensions = chunkDimensions;
             }
 
-            public IMeshBuilder Start(IBlockIterator blockIterator)
+            public IChunkMeshBuilder Start(IBlockIterator blockIterator)
             {
                 _blockIterator = blockIterator;
+                _verticesScaler = _chunkDimensions / blockIterator.Dimensions;
                 RefreshMesh();
+                
+                int size = blockIterator.Dimensions;
+                for (var x = 0; x < size; x++)
+                for (var y = 0; y < size; y++)
+                for (var z = 0; z < size; z++)
+                    AddBlock(x, y, z, _blockIterator[x, y, z]);
+                
                 return this;
             }
 
             private void RefreshMesh() =>
                 _generatedMesh = new Mesh {name = "Chunk"};
 
-            public void SetBlock(int x, int y, int z, BlockType blockType)
+            public void AddBlock(int x, int y, int z, Block block)
             {
-                BlockMesh mesh = _blockMeshProvider.GetBlockMesh(blockType);
+                BlockMesh mesh = _blockMeshProvider.GetBlockMesh(block.Type);
                 
                 if (mesh is null)
                     return;
 
-                foreach (DirectionVectorPair pair in _directionVectorPairs)
-                    if (!FaceIsCovered(x, y, z, pair))
-                        AddFaceToMesh(x, y, z, mesh[pair.Direction]);
+                foreach (Direction direction in _directions)
+                    if (!FaceIsCovered(x, y, z, direction))
+                        AddFaceToMesh(x, y, z, mesh[direction]);
             }
 
-            private bool FaceIsCovered(int x, int y, int z, DirectionVectorPair pair)
+            private bool FaceIsCovered(int x, int y, int z, Direction direction)
             {
-                BlockType adjacentBlockType = _blockIterator[x + pair.Vector.x, y + pair.Vector.y, z + pair.Vector.z];
+                if (!_blockIterator.TryGetNext(x, y, z, direction, out Block block))
+                    return false;
+                
+                BlockType adjacentBlockType = block.Type;
+
+                if (adjacentBlockType is null)
+                    return false;
+                
                 BlockMesh adjacentBlockMesh = _blockMeshProvider.GetBlockMesh(adjacentBlockType);
 
-                bool ret = adjacentBlockMesh is not null && adjacentBlockMesh.Opposite(pair.Direction).CoversAdjacentFace;
-                return ret;
+                return adjacentBlockMesh.Opposite(direction).CoversAdjacentFace;
             }
 
             private void AddFaceToMesh(int x, int y, int z, BlockFace face)
             {
                 int verticesOffset = _vertices.Count;
-                Vector3 position = new(x, y, z);
+                Vector3 position = new Vector3(x, y, z) * _verticesScaler;
                 
                 foreach (Vector3 vertex in face.Vertices)
-                    _vertices.Add(position + vertex);
+                    _vertices.Add(position + vertex * _verticesScaler);
 
                 foreach (int vertexIndex in face.Triangles)
                     _triangles.Add(verticesOffset + vertexIndex);
@@ -86,14 +104,20 @@ namespace Project.World.Generation.Chunks
                     _normals.Add(normal);
             }
 
-            public Mesh Finish()
+            public ChunkMesh Finish()
             {
                 _generatedMesh.vertices = _vertices.ToArray();
                 _generatedMesh.triangles = _triangles.ToArray();
                 _generatedMesh.normals = _normals.ToArray();
+                _generatedMesh.Optimize();
+                _generatedMesh.UploadMeshData(true);
                 
                 Mesh buffer = _generatedMesh;
                 _generatedMesh = null;
+                _vertices.Clear();
+                _triangles.Clear();
+                _normals.Clear();
+                
                 return buffer;
             }
 

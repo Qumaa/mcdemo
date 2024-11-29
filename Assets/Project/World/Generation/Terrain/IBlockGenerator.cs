@@ -4,6 +4,6 @@ namespace Project.World.Generation.Terrain
 {
     public interface IBlockGenerator
     {
-        Block GetBlock(int x, int y, int z);
+        Block GenerateBlock(int x, int y, int z);
     }
 }
