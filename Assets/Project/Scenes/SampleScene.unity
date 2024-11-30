@@ -893,14 +893,10 @@ MonoBehaviour:
   _chunks:
   - <meshFilter>k__BackingField: {fileID: 151356225}
     <chunkLOD>k__BackingField: 0
+  - <meshFilter>k__BackingField: {fileID: 151356225}
+    <chunkLOD>k__BackingField: 1
   - <meshFilter>k__BackingField: {fileID: 1141210770}
     <chunkLOD>k__BackingField: 1
-  - <meshFilter>k__BackingField: {fileID: 1043213808}
-    <chunkLOD>k__BackingField: 2
-  - <meshFilter>k__BackingField: {fileID: 543990950}
-    <chunkLOD>k__BackingField: 3
-  - <meshFilter>k__BackingField: {fileID: 680739074}
-    <chunkLOD>k__BackingField: 4
 --- !u!1 &1690656989
 GameObject:
   m_ObjectHideFlags: 0

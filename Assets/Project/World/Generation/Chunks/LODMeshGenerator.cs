@@ -13,8 +13,8 @@ namespace Project.World.Generation.Chunks
             _lodChunkMeshBuilder = new LODChunkMeshBuilder(blockMeshProvider, chunkDimensions);
         }
 
-        public IChunkMeshBuilder Start(IBlockIterator blockIterator) =>
-            _lodChunkMeshBuilder.Start(blockIterator);
+        public IChunkMeshBuilder Start(IBlocksIterator blocksIterator) =>
+            _lodChunkMeshBuilder.Start(blocksIterator);
 
         private class LODChunkMeshBuilder : IChunkMeshBuilder
         {
@@ -30,7 +30,7 @@ namespace Project.World.Generation.Chunks
             
             private readonly int _chunkDimensions;
             private readonly IBlockMeshProvider _blockMeshProvider;
-            private IBlockIterator _blockIterator;
+            private IBlocksIterator _blocksIterator;
 
             private Mesh _generatedMesh;
             private List<Vector3> _vertices = new();
@@ -44,17 +44,17 @@ namespace Project.World.Generation.Chunks
                 _chunkDimensions = chunkDimensions;
             }
 
-            public IChunkMeshBuilder Start(IBlockIterator blockIterator)
+            public IChunkMeshBuilder Start(IBlocksIterator blocksIterator)
             {
-                _blockIterator = blockIterator;
-                _verticesScaler = _chunkDimensions / blockIterator.Dimensions;
+                _blocksIterator = blocksIterator;
+                _verticesScaler = _chunkDimensions / blocksIterator.Size;
                 RefreshMesh();
                 
-                int size = blockIterator.Dimensions;
+                int size = blocksIterator.Size;
                 for (var x = 0; x < size; x++)
                 for (var y = 0; y < size; y++)
                 for (var z = 0; z < size; z++)
-                    AddBlock(x, y, z, _blockIterator[x, y, z]);
+                    AddBlock(x, y, z, _blocksIterator[x, y, z]);
                 
                 return this;
             }
@@ -76,7 +76,7 @@ namespace Project.World.Generation.Chunks
 
             private bool FaceIsCovered(int x, int y, int z, Direction direction)
             {
-                if (!_blockIterator.TryGetNext(x, y, z, direction, out Block block))
+                if (!_blocksIterator.TryGetNext(x, y, z, direction, out Block block))
                     return false;
                 
                 BlockType adjacentBlockType = block.Type;

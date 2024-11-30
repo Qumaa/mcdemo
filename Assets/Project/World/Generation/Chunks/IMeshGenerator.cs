@@ -4,6 +4,6 @@ namespace Project.World.Generation.Chunks
 {
     public interface IMeshGenerator
     {
-        IChunkMeshBuilder Start(IBlockIterator iterator);
+        IChunkMeshBuilder Start(IBlocksIterator iterator);
     }
 }

@@ -13,7 +13,7 @@ namespace Project.World
         private void Start()
         {
             IMeshGenerator meshGenerator = new LODMeshGenerator(new DummyMeshProvider(), 16);
-            IBlockIteratorProvider iteratorProvider = new BlockIteratorProvider(new DummyBlockGenerator());
+            IBlocksIteratorProvider iteratorProvider = new BlocksIteratorProvider(new DummyBlockGenerator());
 
             var chunk = new Chunk(meshGenerator, iteratorProvider);
 
