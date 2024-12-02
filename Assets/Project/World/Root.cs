@@ -8,17 +8,27 @@ namespace Project.World
 {
     public class Root : MonoBehaviour
     {
-        [SerializeField] private LODMeshFilterPair[] _chunks;
+        [SerializeField] private MeshFilter _prefab;
+        [SerializeField] private int _chunksToGenerate = 16;
         
         private void Start()
         {
-            IMeshGenerator meshGenerator = new LODMeshGenerator(new DummyMeshProvider(), 16);
+            IChunkMeshGenerator chunkMeshGenerator = new LODChunkMeshGenerator(new DummyMeshProvider());
             IBlocksIteratorProvider iteratorProvider = new BlocksIteratorProvider(new DummyBlockGenerator());
 
-            var chunk = new Chunk(meshGenerator, iteratorProvider);
-
-            foreach (LODMeshFilterPair pair in _chunks)
-                pair.meshFilter.mesh = chunk.GenerateMesh(pair.chunkLOD).Mesh;
+            for (var x = 0; x < _chunksToGenerate; x++)
+            {
+                for (var z = 0; z < _chunksToGenerate; z++)
+                {
+                    MeshFilter filter = Instantiate(_prefab, new Vector3(x, 0, z) * Chunk.STANDARD_SIZE, Quaternion.identity);
+                    
+                    var meshSetter = new ChunkMeshSetter(filter);
+                    Vector3Int position = Vector3Int.FloorToInt(filter.transform.position);
+                    var chunk = new Chunk(position, chunkMeshGenerator, iteratorProvider, meshSetter);
+                    
+                    chunk.GenerateMesh(ChunkLOD.Full);
+                }
+            }
         }
 
         [Serializable]

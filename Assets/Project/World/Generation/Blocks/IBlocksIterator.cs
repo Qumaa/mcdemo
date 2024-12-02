@@ -3,7 +3,7 @@
     public interface IBlocksIterator
     {
         public int Size { get; }
-        Block this[int x, int y, int z] { get; }
+        Block this[int x, int y, int z] { get; set; }
         bool TryGetNext(int x, int y, int z, Direction direction, out Block block);
     }
 }

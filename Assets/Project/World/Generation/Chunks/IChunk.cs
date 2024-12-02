@@ -2,6 +2,6 @@
 {
     public interface IChunk
     {
-        ChunkMesh GenerateMesh(ChunkLOD lod);
+        void GenerateMesh(ChunkLOD lod);
     }
 }

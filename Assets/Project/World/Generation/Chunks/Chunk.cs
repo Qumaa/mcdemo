@@ -6,22 +6,29 @@ namespace Project.World.Generation.Chunks
 {
     public class Chunk : IChunk
     {
+        public const int STANDARD_SIZE = 16;
+        
         private IBlocksIterator _blocks;
-        private readonly IMeshGenerator _meshGenerator;
+        private readonly IChunkMeshGenerator _chunkMeshGenerator;
         private readonly IBlockMeshProvider _blockMeshProvider;
         private readonly IBlockGenerator _blockGenerator;
         private readonly IBlocksIteratorProvider _blocksIteratorProvider;
+        private readonly IChunkMeshSetter _meshSetter;
+        private readonly Vector3Int _position;
 
-        public Chunk(IMeshGenerator meshGenerator, IBlocksIteratorProvider blocksIteratorProvider)
+        public Chunk(Vector3Int position, IChunkMeshGenerator chunkMeshGenerator,
+            IBlocksIteratorProvider blocksIteratorProvider, IChunkMeshSetter meshSetter)
         {
-            _meshGenerator = meshGenerator;
+            _position = position;
+            _chunkMeshGenerator = chunkMeshGenerator;
             _blocksIteratorProvider = blocksIteratorProvider;
+            _meshSetter = meshSetter;
         }
 
-        public ChunkMesh GenerateMesh(ChunkLOD lod)
+        public void GenerateMesh(ChunkLOD lod)
         {
-            _blocks = _blocksIteratorProvider.GetBlockIterator(Vector3Int.zero, lod, _blocks);
-            return _meshGenerator.Start(_blocks).Finish();
+            _blocks = _blocksIteratorProvider.GetBlockIterator(_position, lod, _blocks);
+            _meshSetter.SetMesh(_chunkMeshGenerator.Generate(_blocks));
         }
     }
 }

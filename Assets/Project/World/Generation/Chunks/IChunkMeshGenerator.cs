@@ -2,8 +2,8 @@
 
 namespace Project.World.Generation.Chunks
 {
-    public interface IMeshGenerator
+    public interface IChunkMeshGenerator
     {
-        IChunkMeshBuilder Start(IBlocksIterator iterator);
+        ChunkMesh Generate(IBlocksIterator blocks);
     }
 }
