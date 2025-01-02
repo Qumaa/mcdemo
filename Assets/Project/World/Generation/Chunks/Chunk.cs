@@ -7,7 +7,7 @@ namespace Project.World.Generation.Chunks
     public class Chunk : IChunk
     {
         public const int STANDARD_SIZE = 16;
-        
+
         private IBlocksIterator _blocks;
         private readonly IChunkMeshGenerator _chunkMeshGenerator;
         private readonly IBlockMeshProvider _blockMeshProvider;
@@ -32,5 +32,3 @@ namespace Project.World.Generation.Chunks
         }
     }
 }
-
-

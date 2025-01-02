@@ -1,5 +1,4 @@
 ﻿using Project.World.Generation.Blocks;
-using UnityEngine;
 
 namespace Project.World.Generation.Chunks
 {
@@ -7,20 +6,20 @@ namespace Project.World.Generation.Chunks
     public class BlocksIteratorPool
     {
         private readonly BlocksIteratorBucket[] _blocksIteratorPool;
-        
+
         public BlocksIteratorPool(int blocksPerLODLevelPoolLimit)
         {
             _blocksIteratorPool = new BlocksIteratorBucket[ChunkLODs.Number];
 
-            for (var i = 0; i < _blocksIteratorPool.Length; i++)
+            for (int i = 0; i < _blocksIteratorPool.Length; i++)
             {
                 int chunkSize = ChunkLODs.FromInt(i).ChunkSize();
                 int blocksInChunk = chunkSize * chunkSize * chunkSize;
-                
-                _blocksIteratorPool[i] = new BlocksIteratorBucket(blocksPerLODLevelPoolLimit / blocksInChunk);
+
+                _blocksIteratorPool[i] = new(blocksPerLODLevelPoolLimit / blocksInChunk);
             }
         }
-        
+
         public IBlocksIterator Get(ChunkLOD lod, IBlocksIterator previous) =>
             _blocksIteratorPool[lod.ToInt()].Get(previous);
 
@@ -61,7 +60,7 @@ namespace Project.World.Generation.Chunks
             {
                 if (iterator is null)
                     return;
-                
+
                 _items[GetCurrentIndex()] = iterator;
 
                 IncreaseCount();

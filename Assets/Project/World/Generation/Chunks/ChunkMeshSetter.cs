@@ -1,21 +1,24 @@
-﻿using UnityEngine;
+﻿using Project.World.Generation.Blocks;
+using UnityEngine;
 
 namespace Project.World.Generation.Chunks
 {
     public class ChunkMeshSetter : IChunkMeshSetter
     {
-        private readonly MeshFilter _meshFilter;
-        
-        public ChunkMeshSetter(MeshFilter meshFilter) {
-            _meshFilter = meshFilter;
+        private readonly ChunkMesh _chunkMesh;
+        private readonly SixFaceData<MeshFilter> _filters;
+
+        public ChunkMeshSetter(SixFaceData<MeshFilter> filters)
+        {
+            _filters = filters;
         }
 
         public void SetMesh(ChunkMesh mesh)
         {
-            if (_meshFilter.mesh)
-                Object.Destroy(_meshFilter.mesh);
-            
-            _meshFilter.mesh = mesh.Mesh;
+            _chunkMesh?.Dispose();
+
+            foreach (FaceDirection direction in FaceDirections.Array)
+                _filters[direction].mesh = mesh.Meshes[direction];
         }
     }
 }

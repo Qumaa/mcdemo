@@ -4,7 +4,8 @@
     {
         public readonly int ID;
 
-        public BlockType(int id) {
+        public BlockType(int id)
+        {
             ID = id;
         }
     }

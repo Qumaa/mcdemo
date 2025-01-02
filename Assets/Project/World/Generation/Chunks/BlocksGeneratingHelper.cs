@@ -27,14 +27,15 @@ public class BlocksGeneratingHelper
         private readonly int _ratioNewToOld; // positive = multiply; negative = divide;
         private readonly int _blockPositionScaler;
 
-        public Session(int x, int y, int z, IBlocksIterator current, IBlocksIterator previous, IBlockGenerator blockGenerator) : this()
+        public Session(int x, int y, int z, IBlocksIterator current, IBlocksIterator previous,
+            IBlockGenerator blockGenerator) : this()
         {
             _x = x;
             _y = y;
             _z = z;
             _blockGenerator = blockGenerator;
             _blockPositionScaler = Chunk.STANDARD_SIZE / current.Size;
-            
+
             if (previous is null)
             {
                 _ratioNewToOld = _INVALID_VALUE;
@@ -55,9 +56,9 @@ public class BlocksGeneratingHelper
 
         private Block GenerateBlock(int x, int y, int z) =>
             _blockGenerator.GenerateBlock(
-                _x + x * _blockPositionScaler,
-                _y + y * _blockPositionScaler,
-                _z + z * _blockPositionScaler
+                _x + (x * _blockPositionScaler),
+                _y + (y * _blockPositionScaler),
+                _z + (z * _blockPositionScaler)
             );
 
         private bool TryCopy(int x, int y, int z, out Block result)

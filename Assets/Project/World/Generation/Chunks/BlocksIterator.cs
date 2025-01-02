@@ -1,6 +1,5 @@
 ﻿using System;
 using Project.World.Generation.Blocks;
-using UnityEngine;
 
 namespace Project.World.Generation.Chunks
 {
@@ -15,67 +14,73 @@ namespace Project.World.Generation.Chunks
             get => _blocks[FlattenIndex(x, y, z)];
             set => _blocks[FlattenIndex(x, y, z)] = value;
         }
-        
+
         public BlocksIterator(int dimension)
         {
             Size = dimension;
             _blocks = new Block[dimension * dimension * dimension];
         }
 
-        public bool TryGetNext(int x, int y, int z, Direction direction, out Block block)
+        public bool TryGetNext(int x, int y, int z, FaceDirection faceDirection, out Block block)
         {
-            switch (direction)
+            switch (faceDirection)
             {
-                case Direction.Up:
-                    if (y + 1 < Size)
+                case FaceDirection.Up:
+                    if ((y + 1) < Size)
                     {
                         block = this[x, y + 1, z];
                         return true;
                     }
+
                     break;
-                
-                case Direction.Down:
-                    if (y - 1 >= 0)
+
+                case FaceDirection.Down:
+                    if ((y - 1) >= 0)
                     {
                         block = this[x, y - 1, z];
                         return true;
                     }
+
                     break;
-                
-                case Direction.Left:
-                    if (x - 1 >= 0)
+
+                case FaceDirection.Left:
+                    if ((x - 1) >= 0)
                     {
                         block = this[x - 1, y, z];
                         return true;
                     }
+
                     break;
-                
-                case Direction.Right:
-                    if (x + 1 < Size)
+
+                case FaceDirection.Right:
+                    if ((x + 1) < Size)
                     {
                         block = this[x + 1, y, z];
                         return true;
                     }
+
                     break;
-                
-                case Direction.Forward:
-                    if (z + 1 < Size)
+
+                case FaceDirection.Forward:
+                    if ((z + 1) < Size)
                     {
                         block = this[x, y, z + 1];
                         return true;
                     }
+
                     break;
-                
-                case Direction.Back:
-                    if (z - 1 >= 0)
+
+                case FaceDirection.Back:
+                    if ((z - 1) >= 0)
                     {
                         block = this[x, y, z - 1];
                         return true;
                     }
+
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+                    throw new ArgumentOutOfRangeException(nameof(faceDirection), faceDirection, null);
             }
 
             block = default;

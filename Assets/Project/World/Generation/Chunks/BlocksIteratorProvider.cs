@@ -13,8 +13,8 @@ namespace Project.World.Generation.Chunks
 
         public BlocksIteratorProvider(IBlockGenerator blockGenerator)
         {
-            _pool = new BlocksIteratorPool(_BLOCKS_PER_LOD_LEVEL_POOL_LIMIT);
-            _generatingHelper = new BlocksGeneratingHelper(blockGenerator);
+            _pool = new(_BLOCKS_PER_LOD_LEVEL_POOL_LIMIT);
+            _generatingHelper = new(blockGenerator);
         }
 
         public IBlocksIterator GetBlockIterator(Vector3Int position, ChunkLOD lod, IBlocksIterator previous) =>
@@ -26,11 +26,12 @@ namespace Project.World.Generation.Chunks
         private IBlocksIterator PopulateIterator(Vector3Int position, IBlocksIterator iterator, IBlocksIterator source)
         {
             int size = iterator.Size;
-            BlocksGeneratingHelper.Session blocksGenerator = _generatingHelper.StartGenerating(position, iterator, source);
-            
-            for (var x = 0; x < size; x++)
-            for (var y = 0; y < size; y++)
-            for (var z = 0; z < size; z++)
+            BlocksGeneratingHelper.Session blocksGenerator =
+                _generatingHelper.StartGenerating(position, iterator, source);
+
+            for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++)
+            for (int z = 0; z < size; z++)
                 iterator[x, y, z] = blocksGenerator.GetBlock(x, y, z);
 
             return iterator;

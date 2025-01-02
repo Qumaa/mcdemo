@@ -7,24 +7,24 @@ namespace Project.World.Generation.Chunks
     public class LODChunkMeshGenerator : IChunkMeshGenerator
     {
         private readonly IBlockMeshProvider _blockMeshProvider;
-        
-        private readonly List<Vector3> _vertices = new();
-        private readonly List<Vector3> _normals = new();
-        private readonly List<int> _triangles = new();
+
+        private readonly SixFaceData<ChunkFaceBuffer> _faceBuffers;
 
         public LODChunkMeshGenerator(IBlockMeshProvider blockMeshProvider)
         {
             _blockMeshProvider = blockMeshProvider;
+
+            _faceBuffers = SixFaceData.Empty<ChunkFaceBuffer>();
         }
 
         public ChunkMesh Generate(IBlocksIterator blocks)
         {
             int size = blocks.Size;
-            var builder = new Builder(this, blocks, Chunk.STANDARD_SIZE);
-                
-            for (var x = 0; x < size; x++)
-            for (var y = 0; y < size; y++)
-            for (var z = 0; z < size; z++)
+            Builder builder = new(this, blocks, Chunk.STANDARD_SIZE);
+
+            for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++)
+            for (int z = 0; z < size; z++)
                 builder.AddBlock(x, y, z, blocks[x, y, z]);
 
             return builder.Finish();
@@ -34,88 +34,101 @@ namespace Project.World.Generation.Chunks
         {
             private readonly LODChunkMeshGenerator _generator;
             private readonly int _verticesScaler;
-            private readonly Mesh _generatedMesh;
             private readonly IBlocksIterator _blocksIterator;
-            
+
             public Builder(LODChunkMeshGenerator generator, IBlocksIterator blocksIterator, int standardChunkSize)
             {
                 _generator = generator;
                 _blocksIterator = blocksIterator;
-                
+
                 _verticesScaler = standardChunkSize / blocksIterator.Size;
-                _generatedMesh = new Mesh { name = "Chunk" };
             }
 
-            private static readonly Direction[] _directions =
-            {
-                Direction.Up,
-                Direction.Down,
-                Direction.Left,
-                Direction.Right,
-                Direction.Back,
-                Direction.Forward
-            };
-
             private IBlockMeshProvider _blockMeshProvider => _generator._blockMeshProvider;
-            private List<Vector3> _vertices => _generator._vertices;
-            private List<Vector3> _normals => _generator._normals;
-            private List<int> _triangles => _generator._triangles;
+            private SixFaceData<ChunkFaceBuffer> _faceBuffers => _generator._faceBuffers;
 
             public void AddBlock(int x, int y, int z, Block block)
             {
                 BlockMesh mesh = _blockMeshProvider.GetBlockMesh(block.Type);
-                
+
                 if (mesh is null)
                     return;
 
-                foreach (Direction direction in _directions)
+                foreach (FaceDirection direction in FaceDirections.Array)
                     if (!FaceIsCovered(x, y, z, direction))
-                        AddFaceToMesh(x, y, z, mesh[direction]);
+                        _faceBuffers[direction].AddBlockFace(x, y, z, mesh.Faces[direction], _verticesScaler);
             }
-            
+
             public ChunkMesh Finish()
             {
-                _generatedMesh.vertices = _vertices.ToArray();
-                _generatedMesh.triangles = _triangles.ToArray();
-                _generatedMesh.normals = _normals.ToArray();
-                _generatedMesh.Optimize();
-                _generatedMesh.UploadMeshData(true);
+                Directional<Mesh>[] meshes = new Directional<Mesh>[6];
 
-                _vertices.Clear();
-                _triangles.Clear();
-                _normals.Clear();
-                
-                return _generatedMesh;
+                for (int i = 0; i < FaceDirections.Array.Length; i++)
+                {
+                    FaceDirection direction = FaceDirections.Array[i];
+                    ChunkFaceBuffer buffer = _faceBuffers[direction];
+
+                    meshes[i] = new(buffer.Compile(), direction);
+                    buffer.Clear();
+                }
+
+                return new(meshes);
             }
 
-            private bool FaceIsCovered(int x, int y, int z, Direction direction)
+            private bool FaceIsCovered(int x, int y, int z, FaceDirection faceDirection)
             {
-                if (!_blocksIterator.TryGetNext(x, y, z, direction, out Block block))
+                if (!_blocksIterator.TryGetNext(x, y, z, faceDirection, out Block block))
                     return false;
-                
+
                 BlockType adjacentBlockType = block.Type;
 
                 if (adjacentBlockType is null)
                     return false;
-                
+
                 BlockMesh adjacentBlockMesh = _blockMeshProvider.GetBlockMesh(adjacentBlockType);
 
-                return adjacentBlockMesh.Opposite(direction).CoversAdjacentFace;
+                return adjacentBlockMesh.Faces.Opposite(faceDirection).CoversAdjacentFace;
             }
+        }
 
-            private void AddFaceToMesh(int x, int y, int z, BlockFace face)
+        private class ChunkFaceBuffer
+        {
+            private readonly List<Vector3> _vertices = new();
+            private readonly List<Vector3> _normals = new();
+            private readonly List<int> _triangles = new();
+
+            public void AddBlockFace(int x, int y, int z, BlockFace face, float verticesScaler)
             {
                 int verticesOffset = _vertices.Count;
-                Vector3 position = new Vector3(x, y, z) * _verticesScaler;
-                
+                Vector3 position = new Vector3(x, y, z) * verticesScaler;
+
                 foreach (Vector3 vertex in face.Vertices)
-                    _vertices.Add(position + vertex * _verticesScaler);
+                    _vertices.Add(position + (vertex * verticesScaler));
 
                 foreach (int vertexIndex in face.Triangles)
                     _triangles.Add(verticesOffset + vertexIndex);
 
                 foreach (Vector3 normal in face.Normals)
                     _normals.Add(normal);
+            }
+
+            public void Clear()
+            {
+                _vertices.Clear();
+                _normals.Clear();
+                _triangles.Clear();
+            }
+
+            public Mesh Compile()
+            {
+                Mesh mesh = new()
+                {
+                    vertices = _vertices.ToArray(), normals = _normals.ToArray(), triangles = _triangles.ToArray()
+                };
+
+                mesh.UploadMeshData(true);
+
+                return mesh;
             }
         }
     }

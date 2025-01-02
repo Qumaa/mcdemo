@@ -1,4 +1,5 @@
 ﻿using System;
+using Project.World.Generation.Blocks;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -6,16 +7,22 @@ namespace Project.World.Generation.Chunks
 {
     public class ChunkMesh : IDisposable
     {
-        public readonly Mesh Mesh;
-        public ChunkMesh(Mesh mesh) 
+        public SixFaceData<Mesh> Meshes { get; }
+
+        public ChunkMesh(params Directional<Mesh>[] meshes)
         {
-            Mesh = mesh;
+            Meshes = SixFaceData<Mesh>.FromDirectional(meshes);
         }
-        
-        public static implicit operator ChunkMesh(Mesh mesh) => new(mesh);
+
+        public ChunkMesh(SixFaceData<Mesh> meshes)
+        {
+            Meshes = meshes;
+        }
+
         public void Dispose()
         {
-            Object.Destroy(Mesh);
+            foreach (Mesh mesh in Meshes)
+                Object.Destroy(mesh);
         }
     }
 }

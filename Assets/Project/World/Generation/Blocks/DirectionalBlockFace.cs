@@ -3,12 +3,12 @@
     public readonly struct DirectionalBlockFace
     {
         public readonly BlockFace Face;
-        public readonly Direction Direction;
-        
-        public DirectionalBlockFace(BlockFace face, Direction direction)
+        public readonly FaceDirection FaceDirection;
+
+        public DirectionalBlockFace(BlockFace face, FaceDirection faceDirection)
         {
             Face = face;
-            Direction = direction;
+            FaceDirection = faceDirection;
         }
     }
 }

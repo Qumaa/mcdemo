@@ -2,11 +2,11 @@
 {
     public struct Block
     {
-        private BlockType _type;
+        private readonly BlockType _type;
 
         public BlockType Type => _type;
 
-        public Block(BlockType type) 
+        public Block(BlockType type)
         {
             _type = type;
         }

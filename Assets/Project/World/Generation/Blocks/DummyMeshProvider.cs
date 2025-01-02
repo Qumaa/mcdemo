@@ -15,9 +15,16 @@ namespace Project.World.Generation.Blocks
             blockType is null ? null : _cubeMesh;
 
         private static BlockMesh CreateCubeMesh() =>
-            new(CreateTopFace(), CreateBottomFace(), CreateRightFace(), CreateLeftFace(), CreateForwardFace(), CreateBackFace());
+            new(
+                CreateTopFace(),
+                CreateBottomFace(),
+                CreateRightFace(),
+                CreateLeftFace(),
+                CreateForwardFace(),
+                CreateBackFace()
+            );
 
-        private static DirectionalBlockFace CreateTopFace()
+        private static Directional<BlockFace> CreateTopFace()
         {
             BlockFace face = new(
                 new[]
@@ -32,28 +39,22 @@ namespace Project.World.Generation.Blocks
                 true
             );
 
-            return new DirectionalBlockFace(face, Direction.Up);
+            return new(face, FaceDirection.Up);
         }
 
-        private static DirectionalBlockFace CreateBottomFace()
+        private static Directional<BlockFace> CreateBottomFace()
         {
             BlockFace face = new(
-                new[]
-                {
-                    Vector3.zero,
-                    Vector3.right,
-                    Vector3.forward,
-                    Vector3.forward + Vector3.right
-                },
+                new[] { Vector3.zero, Vector3.right, Vector3.forward, Vector3.forward + Vector3.right },
                 new[] { Vector3.down, Vector3.down, Vector3.down, Vector3.down },
                 new[] { 0, 1, 2, 1, 3, 2 },
                 true
             );
 
-            return new DirectionalBlockFace(face, Direction.Down);
+            return new(face, FaceDirection.Down);
         }
 
-        private static DirectionalBlockFace CreateRightFace()
+        private static Directional<BlockFace> CreateRightFace()
         {
             BlockFace face = new(
                 new[]
@@ -68,28 +69,22 @@ namespace Project.World.Generation.Blocks
                 true
             );
 
-            return new DirectionalBlockFace(face, Direction.Right);
+            return new(face, FaceDirection.Right);
         }
 
-        private static DirectionalBlockFace CreateLeftFace()
+        private static Directional<BlockFace> CreateLeftFace()
         {
             BlockFace face = new(
-                new[]
-                {
-                    Vector3.zero,
-                    Vector3.up,
-                    Vector3.forward,
-                    Vector3.forward + Vector3.up
-                },
+                new[] { Vector3.zero, Vector3.up, Vector3.forward, Vector3.forward + Vector3.up },
                 new[] { Vector3.right, Vector3.right, Vector3.right, Vector3.right },
                 new[] { 0, 2, 1, 1, 2, 3 },
                 true
             );
 
-            return new DirectionalBlockFace(face, Direction.Left);
+            return new(face, FaceDirection.Left);
         }
-        
-        private static DirectionalBlockFace CreateForwardFace()
+
+        private static Directional<BlockFace> CreateForwardFace()
         {
             BlockFace face = new(
                 new[]
@@ -104,25 +99,19 @@ namespace Project.World.Generation.Blocks
                 true
             );
 
-            return new DirectionalBlockFace(face, Direction.Forward);
+            return new(face, FaceDirection.Forward);
         }
-        
-        private static DirectionalBlockFace CreateBackFace()
+
+        private static Directional<BlockFace> CreateBackFace()
         {
             BlockFace face = new(
-                new[]
-                {
-                    Vector3.zero,
-                    Vector3.up,
-                    Vector3.right,
-                    Vector3.right + Vector3.up
-                },
+                new[] { Vector3.zero, Vector3.up, Vector3.right, Vector3.right + Vector3.up },
                 new[] { Vector3.back, Vector3.back, Vector3.back, Vector3.back },
                 new[] { 0, 1, 2, 1, 3, 2 },
                 true
             );
 
-            return new DirectionalBlockFace(face, Direction.Back);
+            return new(face, FaceDirection.Back);
         }
     }
 }
