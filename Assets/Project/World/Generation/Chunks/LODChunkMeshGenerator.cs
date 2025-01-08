@@ -17,10 +17,10 @@ namespace Project.World.Generation.Chunks
             _faceBuilders = SixFaces.Empty<ChunkFaceBuilder>();
         }
 
-        public ChunkMesh Generate(IBlocksIterator blocks, int standardChunkSize)
+        public ChunkMesh Generate(IBlocksIterator blocks)
         {
             int size = blocks.Size;
-            MeshBuilder meshBuilder = new(this, blocks, standardChunkSize);
+            MeshBuilder meshBuilder = new(this, blocks);
 
             for (int x = 0; x < size; x++)
             for (int y = 0; y < size; y++)
@@ -32,16 +32,18 @@ namespace Project.World.Generation.Chunks
 
         private readonly ref struct MeshBuilder
         {
+            private const int _CHUNK_SIZE = Chunk.STANDARD_SIZE;
+            
             private readonly LODChunkMeshGenerator _generator;
             private readonly int _verticesScaler;
             private readonly IBlocksIterator _blocksIterator;
 
-            public MeshBuilder(LODChunkMeshGenerator generator, IBlocksIterator blocksIterator, int standardChunkSize)
+            public MeshBuilder(LODChunkMeshGenerator generator, IBlocksIterator blocksIterator)
             {
                 _generator = generator;
                 _blocksIterator = blocksIterator;
 
-                _verticesScaler = standardChunkSize / blocksIterator.Size;
+                _verticesScaler = _CHUNK_SIZE / blocksIterator.Size;
             }
 
             private IBlockMeshProvider _blockMeshProvider => _generator._blockMeshProvider;

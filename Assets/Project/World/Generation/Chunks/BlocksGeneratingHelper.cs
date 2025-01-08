@@ -1,4 +1,5 @@
-﻿using Project.World.Generation.Blocks;
+﻿using Project.World;
+using Project.World.Generation.Blocks;
 using Project.World.Generation.Chunks;
 using Project.World.Generation.Terrain;
 using UnityEngine;
@@ -12,15 +13,16 @@ public class BlocksGeneratingHelper
         _blockGenerator = blockGenerator;
     }
 
-    public Session StartGenerating(Vector3Int position, int chunkStandardSize, IBlocksIterator iterator, 
+    public Session StartGenerating(ChunkPosition position, IBlocksIterator iterator, 
         IBlocksIterator copyFrom) =>
-        new(position.x, position.y, position.z, chunkStandardSize, iterator, copyFrom, _blockGenerator);
+        new(position.x, position.y, position.z, iterator, copyFrom, _blockGenerator);
 
     public readonly ref struct Session
     {
+        private const int _CHUNK_SIZE = Chunk.STANDARD_SIZE;
         private const int _INVALID_VALUE = 0;
 
-        private readonly IBlocksIterator _previous;
+        private readonly IBlocksIterator _copyFrom;
         private readonly IBlockGenerator _blockGenerator;
         private readonly int _x;
         private readonly int _y;
@@ -28,14 +30,14 @@ public class BlocksGeneratingHelper
         private readonly int _ratioNewToOld; // positive = multiply; negative = divide;
         private readonly int _blockPositionScaler;
 
-        public Session(int x, int y, int z, int chunkStandardSize, IBlocksIterator current, IBlocksIterator previous,
+        public Session(int x, int y, int z, IBlocksIterator current, IBlocksIterator previous,
             IBlockGenerator blockGenerator) : this()
         {
             _x = x;
             _y = y;
             _z = z;
             _blockGenerator = blockGenerator;
-            _blockPositionScaler = chunkStandardSize / current.Size;
+            _blockPositionScaler = _CHUNK_SIZE / current.Size;
 
             if (previous is null)
             {
@@ -44,7 +46,7 @@ public class BlocksGeneratingHelper
             }
 
             _ratioNewToOld = CalculateRatio(current.Size, previous.Size);
-            _previous = previous;
+            _copyFrom = previous;
         }
 
         private static int CalculateRatio(int currentDimension, int copyFromDimension) =>
@@ -62,9 +64,12 @@ public class BlocksGeneratingHelper
                 _z + (z * _blockPositionScaler)
             );
 
-        private bool TryCopy(int x, int y, int z, out Block result)
+        private bool TryCopy(int x, int y, int z, out Block copied)
         {
-            result = default;
+            // copying from one 3d array to another with varying size
+            // if source array is smaller, all values are copied but "padded" 
+            // if source array is larger, only a fraction of values is copied
+            copied = default;
 
             switch (_ratioNewToOld)
             {
@@ -77,10 +82,10 @@ public class BlocksGeneratingHelper
                     break;
 
                 // new is larger
-                case > 0 when x % _ratioNewToOld is not 0 || y % _ratioNewToOld is not 0 || z % _ratioNewToOld is not 0:
-                    return false;
-
                 case > 0:
+                    if (CanNotCopyFromPrevious(x, y, z))
+                        return false;
+                    
                     x /= _ratioNewToOld;
                     y /= _ratioNewToOld;
                     z /= _ratioNewToOld;
@@ -94,8 +99,11 @@ public class BlocksGeneratingHelper
                     break;
             }
 
-            result = _previous[x, y, z];
+            copied = _copyFrom[x, y, z];
             return true;
         }
+
+        private bool CanNotCopyFromPrevious(int x, int y, int z) =>
+            x % _ratioNewToOld is not 0 || y % _ratioNewToOld is not 0 || z % _ratioNewToOld is not 0;
     }
 }

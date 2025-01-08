@@ -14,9 +14,9 @@ namespace Project.World.Generation.Chunks
         private readonly IBlockGenerator _blockGenerator;
         private readonly IBlocksIteratorProvider _blocksIteratorProvider;
         private readonly IChunkMeshSetter _meshSetter;
-        private readonly Vector3Int _position;
+        private readonly ChunkPosition _position;
 
-        public Chunk(Vector3Int position, IChunkMeshGenerator chunkMeshGenerator,
+        public Chunk(ChunkPosition position, IChunkMeshGenerator chunkMeshGenerator,
             IBlocksIteratorProvider blocksIteratorProvider, IChunkMeshSetter meshSetter)
         {
             _position = position;
@@ -27,8 +27,8 @@ namespace Project.World.Generation.Chunks
 
         public void GenerateMesh(ChunkLOD lod)
         {
-            _blocks = _blocksIteratorProvider.GetBlockIterator(_position, STANDARD_SIZE, lod, _blocks);
-            _meshSetter.SetMesh(_chunkMeshGenerator.Generate(_blocks, STANDARD_SIZE));
+            _blocks = _blocksIteratorProvider.GetBlockIterator(_position, lod, _blocks);
+            _meshSetter.SetMesh(_chunkMeshGenerator.Generate(_blocks));
         }
     }
 }

@@ -5,7 +5,6 @@ namespace Project.World.Generation.Chunks
 {
     public interface IBlocksIteratorProvider
     {
-        IBlocksIterator GetBlockIterator(Vector3Int position,
-            int chunkStandardSize, ChunkLOD lod, IBlocksIterator previous);
+        IBlocksIterator GetBlockIterator(ChunkPosition position, ChunkLOD lod, IBlocksIterator previous);
     }
 }
