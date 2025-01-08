@@ -2,7 +2,7 @@
 {
     public class BlockMesh
     {
-        public SixFaceData<BlockFace> Faces { get; }
+        public SixFaces<BlockFace> Faces { get; }
 
         public BlockMesh(Directional<BlockFace> top, Directional<BlockFace> bottom, Directional<BlockFace> right,
             Directional<BlockFace> left, Directional<BlockFace> front, Directional<BlockFace> back)

@@ -27,8 +27,8 @@ namespace Project.World.Generation.Chunks
 
         public void GenerateMesh(ChunkLOD lod)
         {
-            _blocks = _blocksIteratorProvider.GetBlockIterator(_position, lod, _blocks);
-            _meshSetter.SetMesh(_chunkMeshGenerator.Generate(_blocks));
+            _blocks = _blocksIteratorProvider.GetBlockIterator(_position, STANDARD_SIZE, lod, _blocks);
+            _meshSetter.SetMesh(_chunkMeshGenerator.Generate(_blocks, STANDARD_SIZE));
         }
     }
 }

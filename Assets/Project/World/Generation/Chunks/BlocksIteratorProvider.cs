@@ -17,17 +17,19 @@ namespace Project.World.Generation.Chunks
             _generatingHelper = new(blockGenerator);
         }
 
-        public IBlocksIterator GetBlockIterator(Vector3Int position, ChunkLOD lod, IBlocksIterator previous) =>
-            PopulateIterator(position, GetIterator(lod, previous), previous);
+        public IBlocksIterator GetBlockIterator(Vector3Int position, int chunkStandardSize, ChunkLOD lod,
+            IBlocksIterator previous) =>
+            PopulateIterator(position, chunkStandardSize, GetIterator(lod, previous), previous);
 
         private IBlocksIterator GetIterator(ChunkLOD lod, IBlocksIterator previous) =>
             _pool.Get(lod, previous) ?? new BlocksIterator(lod.ChunkSize());
 
-        private IBlocksIterator PopulateIterator(Vector3Int position, IBlocksIterator iterator, IBlocksIterator source)
+        private IBlocksIterator PopulateIterator(Vector3Int position, int chunkStandardSize, IBlocksIterator iterator,
+            IBlocksIterator source)
         {
             int size = iterator.Size;
             BlocksGeneratingHelper.Session blocksGenerator =
-                _generatingHelper.StartGenerating(position, iterator, source);
+                _generatingHelper.StartGenerating(position, chunkStandardSize, iterator, source);
 
             for (int x = 0; x < size; x++)
             for (int y = 0; y < size; y++)

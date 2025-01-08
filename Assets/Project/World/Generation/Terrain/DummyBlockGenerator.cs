@@ -17,7 +17,7 @@ namespace Project.World.Generation.Terrain
 
             float perlin = Mathf.PerlinNoise(x / scale, z / scale);
 
-            return 6 + (int) (4f * perlin);
+            return 6 + (int) (6f * perlin);
         }
     }
 }

@@ -8,35 +8,35 @@ namespace Project.World.Generation.Chunks
     {
         private readonly IBlockMeshProvider _blockMeshProvider;
 
-        private readonly SixFaceData<ChunkFaceBuffer> _faceBuffers;
+        private readonly SixFaces<ChunkFaceBuilder> _faceBuilders;
 
         public LODChunkMeshGenerator(IBlockMeshProvider blockMeshProvider)
         {
             _blockMeshProvider = blockMeshProvider;
 
-            _faceBuffers = SixFaceData.Empty<ChunkFaceBuffer>();
+            _faceBuilders = SixFaces.Empty<ChunkFaceBuilder>();
         }
 
-        public ChunkMesh Generate(IBlocksIterator blocks)
+        public ChunkMesh Generate(IBlocksIterator blocks, int standardChunkSize)
         {
             int size = blocks.Size;
-            Builder builder = new(this, blocks, Chunk.STANDARD_SIZE);
+            MeshBuilder meshBuilder = new(this, blocks, standardChunkSize);
 
             for (int x = 0; x < size; x++)
             for (int y = 0; y < size; y++)
             for (int z = 0; z < size; z++)
-                builder.AddBlock(x, y, z, blocks[x, y, z]);
+                meshBuilder.AddBlock(x, y, z);
 
-            return builder.Finish();
+            return meshBuilder.Build();
         }
 
-        private readonly ref struct Builder
+        private readonly ref struct MeshBuilder
         {
             private readonly LODChunkMeshGenerator _generator;
             private readonly int _verticesScaler;
             private readonly IBlocksIterator _blocksIterator;
 
-            public Builder(LODChunkMeshGenerator generator, IBlocksIterator blocksIterator, int standardChunkSize)
+            public MeshBuilder(LODChunkMeshGenerator generator, IBlocksIterator blocksIterator, int standardChunkSize)
             {
                 _generator = generator;
                 _blocksIterator = blocksIterator;
@@ -45,10 +45,11 @@ namespace Project.World.Generation.Chunks
             }
 
             private IBlockMeshProvider _blockMeshProvider => _generator._blockMeshProvider;
-            private SixFaceData<ChunkFaceBuffer> _faceBuffers => _generator._faceBuffers;
+            private SixFaces<ChunkFaceBuilder> _faceBuilders => _generator._faceBuilders;
 
-            public void AddBlock(int x, int y, int z, Block block)
+            public void AddBlock(int x, int y, int z)
             {
+                Block block = _blocksIterator[x, y, z];
                 BlockMesh mesh = _blockMeshProvider.GetBlockMesh(block.Type);
 
                 if (mesh is null)
@@ -56,23 +57,22 @@ namespace Project.World.Generation.Chunks
 
                 foreach (FaceDirection direction in FaceDirections.Array)
                     if (!FaceIsCovered(x, y, z, direction))
-                        _faceBuffers[direction].AddBlockFace(x, y, z, mesh.Faces[direction], _verticesScaler);
+                        _faceBuilders[direction].AddBlockFace(x, y, z, mesh.Faces[direction], _verticesScaler);
             }
 
-            public ChunkMesh Finish()
+            public ChunkMesh Build()
             {
-                Directional<Mesh>[] meshes = new Directional<Mesh>[6];
+                SixFacesBuilder<Mesh> builder = new();
 
-                for (int i = 0; i < FaceDirections.Array.Length; i++)
+                foreach (FaceDirection direction in FaceDirections.Array)
                 {
-                    FaceDirection direction = FaceDirections.Array[i];
-                    ChunkFaceBuffer buffer = _faceBuffers[direction];
+                    ChunkFaceBuilder faceBuilder = _faceBuilders[direction];
 
-                    meshes[i] = new(buffer.Compile(), direction);
-                    buffer.Clear();
+                    builder.AppendFace(new(faceBuilder.BuildMesh(), direction));
+                    faceBuilder.Clear();
                 }
 
-                return new(meshes);
+                return new(builder.Build());
             }
 
             private bool FaceIsCovered(int x, int y, int z, FaceDirection faceDirection)
@@ -91,7 +91,7 @@ namespace Project.World.Generation.Chunks
             }
         }
 
-        private class ChunkFaceBuffer
+        private class ChunkFaceBuilder
         {
             private readonly List<Vector3> _vertices = new();
             private readonly List<Vector3> _normals = new();
@@ -119,7 +119,7 @@ namespace Project.World.Generation.Chunks
                 _triangles.Clear();
             }
 
-            public Mesh Compile()
+            public Mesh BuildMesh()
             {
                 Mesh mesh = new()
                 {

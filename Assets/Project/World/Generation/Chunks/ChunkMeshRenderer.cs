@@ -16,7 +16,7 @@ namespace Project.World.Generation.Chunks
 
         private void Awake()
         {
-            SixFaceData<MeshFilter> filters = new(
+            SixFaces<MeshFilter> filters = new(
                 new(_top, FaceDirection.Up),
                 new(_bottom, FaceDirection.Down),
                 new(_right, FaceDirection.Right),

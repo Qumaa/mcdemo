@@ -12,8 +12,9 @@ public class BlocksGeneratingHelper
         _blockGenerator = blockGenerator;
     }
 
-    public Session StartGenerating(Vector3Int position, IBlocksIterator iterator, IBlocksIterator copyFrom) =>
-        new(position.x, position.y, position.z, iterator, copyFrom, _blockGenerator);
+    public Session StartGenerating(Vector3Int position, int chunkStandardSize, IBlocksIterator iterator, 
+        IBlocksIterator copyFrom) =>
+        new(position.x, position.y, position.z, chunkStandardSize, iterator, copyFrom, _blockGenerator);
 
     public readonly ref struct Session
     {
@@ -27,14 +28,14 @@ public class BlocksGeneratingHelper
         private readonly int _ratioNewToOld; // positive = multiply; negative = divide;
         private readonly int _blockPositionScaler;
 
-        public Session(int x, int y, int z, IBlocksIterator current, IBlocksIterator previous,
+        public Session(int x, int y, int z, int chunkStandardSize, IBlocksIterator current, IBlocksIterator previous,
             IBlockGenerator blockGenerator) : this()
         {
             _x = x;
             _y = y;
             _z = z;
             _blockGenerator = blockGenerator;
-            _blockPositionScaler = Chunk.STANDARD_SIZE / current.Size;
+            _blockPositionScaler = chunkStandardSize / current.Size;
 
             if (previous is null)
             {

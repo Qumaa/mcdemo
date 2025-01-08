@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Project.World.Generation.Blocks
 {
-    public class SixFaceData<T> : IEnumerable<T>
+    public class SixFaces<T> : IEnumerable<T>
     {
         private readonly T[] _faces;
 
@@ -19,30 +19,30 @@ namespace Project.World.Generation.Blocks
         public T Back => this[FaceDirection.Back];
         public T Front => this[FaceDirection.Forward];
 
-        public SixFaceData(Directional<T> face1, Directional<T> face2, Directional<T> face3, Directional<T> face4,
+        public SixFaces(Directional<T> face1, Directional<T> face2, Directional<T> face3, Directional<T> face4,
             Directional<T> face5, Directional<T> face6)
         {
             Validate.Faces(face1, face2, face3, face4, face5, face6);
 
             _faces = new T[6];
 
-            SetFace(face1);
-            SetFace(face2);
-            SetFace(face3);
-            SetFace(face4);
-            SetFace(face5);
-            SetFace(face6);
+            AppendFace(face1);
+            AppendFace(face2);
+            AppendFace(face3);
+            AppendFace(face4);
+            AppendFace(face5);
+            AppendFace(face6);
         }
 
-        private SixFaceData(Directional<T>[] faces)
+        private SixFaces(Directional<T>[] faces)
         {
             _faces = new T[faces.Length];
 
-            for (int i = 0; i < faces.Length; i++)
-                SetFace(faces[i]);
+            foreach (Directional<T> face in faces)
+                AppendFace(face);
         }
 
-        private void SetFace(Directional<T> face) =>
+        private void AppendFace(Directional<T> face) =>
             _faces[face.Direction.ToInt()] = face.Face;
 
         public T Opposite(FaceDirection faceDirection) =>
@@ -54,7 +54,7 @@ namespace Project.World.Generation.Blocks
         IEnumerator IEnumerable.GetEnumerator() =>
             _faces.GetEnumerator();
 
-        public static SixFaceData<T> FromDirectional(params Directional<T>[] faces)
+        public static SixFaces<T> FromDirectional(params Directional<T>[] faces)
         {
             Validate.Faces(faces);
 
@@ -105,9 +105,9 @@ namespace Project.World.Generation.Blocks
         }
     }
 
-    public static class SixFaceData
+    public static class SixFaces
     {
-        public static SixFaceData<T> Empty<T>() where T : new() =>
+        public static SixFaces<T> Empty<T>() where T : new() =>
             new(
                 new(new(), FaceDirection.Up),
                 new(new(), FaceDirection.Down),

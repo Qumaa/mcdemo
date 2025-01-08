@@ -6,9 +6,9 @@ namespace Project.World.Generation.Chunks
     public class ChunkMeshSetter : IChunkMeshSetter
     {
         private readonly ChunkMesh _chunkMesh;
-        private readonly SixFaceData<MeshFilter> _filters;
+        private readonly SixFaces<MeshFilter> _filters;
 
-        public ChunkMeshSetter(SixFaceData<MeshFilter> filters)
+        public ChunkMeshSetter(SixFaces<MeshFilter> filters)
         {
             _filters = filters;
         }
