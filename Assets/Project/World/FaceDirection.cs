@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace Project.World
 {
@@ -33,6 +34,18 @@ namespace Project.World
                 FaceDirection.Left => 3,
                 FaceDirection.Forward => 4,
                 FaceDirection.Back => 5,
+                _ => throw new ArgumentOutOfRangeException(nameof(faceDirection), faceDirection, null)
+            };
+        
+        public static Vector3Int ToVector(this FaceDirection faceDirection) =>
+            faceDirection switch
+            {
+                FaceDirection.Up => Vector3Int.up,
+                FaceDirection.Down => Vector3Int.down,
+                FaceDirection.Right => Vector3Int.right,
+                FaceDirection.Left => Vector3Int.left,
+                FaceDirection.Forward => Vector3Int.forward,
+                FaceDirection.Back => Vector3Int.back,
                 _ => throw new ArgumentOutOfRangeException(nameof(faceDirection), faceDirection, null)
             };
 

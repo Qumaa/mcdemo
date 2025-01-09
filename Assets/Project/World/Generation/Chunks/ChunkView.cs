@@ -3,19 +3,21 @@ using UnityEngine;
 
 namespace Project.World.Generation.Chunks
 {
-    public class ChunkMeshSetter : IChunkMeshSetter
+    public class ChunkView : IChunkView
     {
-        private readonly ChunkMesh _chunkMesh;
         private readonly SixFaces<MeshFilter> _filters;
 
-        public ChunkMeshSetter(SixFaces<MeshFilter> filters)
+        public ChunkView(SixFaces<MeshFilter> filters)
         {
             _filters = filters;
         }
 
+        public ChunkMesh Mesh { get; private set; }
+
         public void SetMesh(ChunkMesh mesh)
         {
-            _chunkMesh?.Dispose();
+            Mesh?.Dispose();
+            Mesh = mesh;
 
             foreach (FaceDirection direction in FaceDirections.Array)
                 _filters[direction].mesh = mesh.Meshes[direction];

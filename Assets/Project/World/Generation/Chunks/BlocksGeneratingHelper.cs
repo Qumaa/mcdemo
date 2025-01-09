@@ -15,7 +15,7 @@ public class BlocksGeneratingHelper
 
     public Session StartGenerating(ChunkPosition position, IBlocksIterator iterator, 
         IBlocksIterator copyFrom) =>
-        new(position.x, position.y, position.z, iterator, copyFrom, _blockGenerator);
+        new(position, iterator, copyFrom, _blockGenerator);
 
     public readonly ref struct Session
     {
@@ -30,12 +30,13 @@ public class BlocksGeneratingHelper
         private readonly int _ratioNewToOld; // positive = multiply; negative = divide;
         private readonly int _blockPositionScaler;
 
-        public Session(int x, int y, int z, IBlocksIterator current, IBlocksIterator previous,
+        public Session(ChunkPosition position, IBlocksIterator current, IBlocksIterator previous,
             IBlockGenerator blockGenerator) : this()
         {
-            _x = x;
-            _y = y;
-            _z = z;
+            Vector3Int worldPosition = position.ToWorld();
+            _x = worldPosition.x;
+            _y = worldPosition.y;
+            _z = worldPosition.z;
             _blockGenerator = blockGenerator;
             _blockPositionScaler = _CHUNK_SIZE / current.Size;
 

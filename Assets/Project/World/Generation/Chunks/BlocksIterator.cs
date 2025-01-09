@@ -11,7 +11,11 @@ namespace Project.World.Generation.Chunks
 
         public Block this[int x, int y, int z]
         {
-            get => _blocks[FlattenIndex(x, y, z)];
+            get
+            {
+                int i = FlattenIndex(x, y, z);
+                return _blocks[i];
+            }
             set => _blocks[FlattenIndex(x, y, z)] = value;
         }
 

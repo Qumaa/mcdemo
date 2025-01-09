@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace Project.World.Generation.Chunks
 {
-    public class ChunkMeshRenderer : MonoBehaviour, IChunkMeshSetter
+    public class ChunkMeshRenderer : MonoBehaviour, IChunkView
     {
-        private ChunkMeshSetter _meshSetter;
+        private ChunkView _view;
 
         [SerializeField] private MeshFilter _top;
         [SerializeField] private MeshFilter _bottom;
@@ -25,10 +25,12 @@ namespace Project.World.Generation.Chunks
                 new(_back, FaceDirection.Back)
             );
 
-            _meshSetter = new(filters);
+            _view = new(filters);
         }
 
+        public ChunkMesh Mesh => _view.Mesh;
+
         public void SetMesh(ChunkMesh mesh) =>
-            _meshSetter.SetMesh(mesh);
+            _view.SetMesh(mesh);
     }
 }

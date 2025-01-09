@@ -1,6 +1,5 @@
 using Project.World.Generation.Blocks;
 using Project.World.Generation.Terrain;
-using UnityEngine;
 
 namespace Project.World.Generation.Chunks
 {
@@ -8,27 +7,26 @@ namespace Project.World.Generation.Chunks
     {
         public const int STANDARD_SIZE = 16;
 
-        private IBlocksIterator _blocks;
         private readonly IChunkMeshGenerator _chunkMeshGenerator;
-        private readonly IBlockMeshProvider _blockMeshProvider;
-        private readonly IBlockGenerator _blockGenerator;
         private readonly IBlocksIteratorProvider _blocksIteratorProvider;
-        private readonly IChunkMeshSetter _meshSetter;
-        private readonly ChunkPosition _position;
+        private readonly IChunkView _view;
+        public ChunkMesh Mesh => _view.Mesh;
+        public ChunkPosition Position { get; }
+        public IBlocksIterator Blocks { get; private set; }
 
         public Chunk(ChunkPosition position, IChunkMeshGenerator chunkMeshGenerator,
-            IBlocksIteratorProvider blocksIteratorProvider, IChunkMeshSetter meshSetter)
+            IBlocksIteratorProvider blocksIteratorProvider, IChunkView view)
         {
-            _position = position;
+            Position = position;
             _chunkMeshGenerator = chunkMeshGenerator;
             _blocksIteratorProvider = blocksIteratorProvider;
-            _meshSetter = meshSetter;
+            _view = view;
         }
 
-        public void GenerateMesh(ChunkLOD lod)
-        {
-            _blocks = _blocksIteratorProvider.GetBlockIterator(_position, lod, _blocks);
-            _meshSetter.SetMesh(_chunkMeshGenerator.Generate(_blocks));
-        }
+        public void GenerateBlocks(ChunkLOD lod) =>
+            Blocks = _blocksIteratorProvider.GetBlockIterator(Position, lod, Blocks);
+
+        public void GenerateMesh(ChunkLOD lod) =>
+            _view.SetMesh(_chunkMeshGenerator.Generate(Blocks));
     }
 }

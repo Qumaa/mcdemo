@@ -2,27 +2,22 @@
 
 namespace Project.World
 {
-    public class ChunkLODLevelProvider : IChunkLODLevelProvider
+    public class ChunkLODProvider : IChunkLODProvider
     {
-        private ChunkPosition _basePosition;
         private const int _RADIUS = 4;
 
-        public ChunkLODLevelProvider(ChunkPosition basePosition)
+        public ChunkLOD GetLevel(ChunkPosition basePosition, ChunkPosition chunkPosition)
         {
-            _basePosition = basePosition;
-        }
-
-        public ChunkLOD GetLevel(ChunkPosition chunkPosition)
-        {
-            int distance = chunkPosition.Distance(_basePosition);
+            int distance = chunkPosition.Distance(basePosition);
 
             int lodLevel = 0;
+            int lodLevelLimit = ChunkLODs.Number - 1;
             int threshold = _RADIUS;
             while (distance > threshold)
             {
                 lodLevel++;
 
-                if (lodLevel >= ChunkLODs.Number - 1)
+                if (lodLevel >= lodLevelLimit)
                     break;
 
                 threshold += _RADIUS << lodLevel;

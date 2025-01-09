@@ -7,12 +7,14 @@ namespace Project.World.Generation.Chunks
     public class LODChunkMeshGenerator : IChunkMeshGenerator
     {
         private readonly IBlockMeshProvider _blockMeshProvider;
+        private readonly IChunksIterator _chunksIterator;
 
         private readonly SixFaces<ChunkFaceBuilder> _faceBuilders;
 
-        public LODChunkMeshGenerator(IBlockMeshProvider blockMeshProvider)
+        public LODChunkMeshGenerator(IBlockMeshProvider blockMeshProvider, IChunksIterator chunksIterator)
         {
             _blockMeshProvider = blockMeshProvider;
+            _chunksIterator = chunksIterator;
 
             _faceBuilders = SixFaces.Empty<ChunkFaceBuilder>();
         }
@@ -47,6 +49,7 @@ namespace Project.World.Generation.Chunks
             }
 
             private IBlockMeshProvider _blockMeshProvider => _generator._blockMeshProvider;
+            private IChunksIterator _chunksIterator => _generator._chunksIterator;
             private SixFaces<ChunkFaceBuilder> _faceBuilders => _generator._faceBuilders;
 
             public void AddBlock(int x, int y, int z)
