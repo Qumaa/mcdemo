@@ -4,7 +4,6 @@ using Project.World.Generation.Blocks;
 using Project.World.Generation.Chunks;
 using Project.World.Generation.Terrain;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Project.World
 {
@@ -53,8 +52,10 @@ namespace Project.World
             _chunks = new();
         }
 
-        public bool TryGetChunk(ChunkPosition position, out LODChunk chunk) =>
-            _chunks.TryGetValue(position, out chunk);
+        public QueryResult<IChunk> QueryNextChunk(ChunkPosition position, FaceDirection direction) =>
+            _chunks.TryGetValue(position + direction.ToVector(), out LODChunk chunk) ?
+                QueryResult<IChunk>.Successful(chunk.Chunk) :
+                QueryResult<IChunk>.Failed;
 
         public void UpdateChunks(ChunkPosition newCenter)
         {
@@ -100,56 +101,5 @@ namespace Project.World
         {
             
         }
-    }
-
-    public struct LODChunk 
-    {
-        public readonly IChunk Chunk;
-        public ChunkLOD LOD;
-
-        public LODChunk(IChunk chunk, ChunkLOD lod)
-        {
-            Chunk = chunk;
-            LOD = lod;
-        }
-        
-        public void GenerateBlocks() =>
-            Chunk.GenerateBlocks(LOD);
-
-        public void GenerateMesh() =>
-            Chunk.GenerateMesh(LOD);
-    }
-
-    public interface IChunksSupervisor
-    {
-        void UpdateChunks(ChunkPosition newCenter);
-        void SetLoadDistance(int distance);
-        void ForceGenerateChunks();
-    }
-
-    public interface IChunksIterator
-    {
-        public bool TryGetChunk(ChunkPosition position, out LODChunk chunk);
-    }
-
-    public class ChunksIteratorKostyl : IChunksIterator
-    {
-        public World World;
-        public bool TryGetChunk(ChunkPosition position, out LODChunk chunk) =>
-            World.TryGetChunk(position, out chunk);
-    }
-
-    public class ChunkViewFactory
-    {
-        private readonly GameObject _chunkPrefab;
-        
-        public ChunkViewFactory(GameObject chunkPrefab) 
-        {
-            _chunkPrefab = chunkPrefab;
-        }
-
-        public IChunkView Create(ChunkPosition position) =>
-            Object.Instantiate(_chunkPrefab, position.ToWorld(), Quaternion.identity)
-                .GetComponent<IChunkView>();
     }
 }

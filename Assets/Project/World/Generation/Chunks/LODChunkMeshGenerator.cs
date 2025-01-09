@@ -19,10 +19,11 @@ namespace Project.World.Generation.Chunks
             _faceBuilders = SixFaces.Empty<ChunkFaceBuilder>();
         }
 
-        public ChunkMesh Generate(IBlocksIterator blocks)
+        public ChunkMesh Generate(IChunk chunk)
         {
+            IBlocksIterator blocks = chunk.Blocks;
             int size = blocks.Size;
-            MeshBuilder meshBuilder = new(this, blocks);
+            MeshBuilder meshBuilder = new(this, chunk);
 
             for (int x = 0; x < size; x++)
             for (int y = 0; y < size; y++)
@@ -38,23 +39,25 @@ namespace Project.World.Generation.Chunks
             
             private readonly LODChunkMeshGenerator _generator;
             private readonly int _verticesScaler;
-            private readonly IBlocksIterator _blocksIterator;
+            private readonly IChunk _chunk;
 
-            public MeshBuilder(LODChunkMeshGenerator generator, IBlocksIterator blocksIterator)
+            public MeshBuilder(LODChunkMeshGenerator generator, IChunk chunk)
             {
                 _generator = generator;
-                _blocksIterator = blocksIterator;
+                _chunk = chunk;
 
-                _verticesScaler = _CHUNK_SIZE / blocksIterator.Size;
+                _verticesScaler = _CHUNK_SIZE / chunk.Blocks.Size;
             }
 
             private IBlockMeshProvider _blockMeshProvider => _generator._blockMeshProvider;
             private IChunksIterator _chunksIterator => _generator._chunksIterator;
             private SixFaces<ChunkFaceBuilder> _faceBuilders => _generator._faceBuilders;
 
+            private IBlocksIterator _blocks => _chunk.Blocks;
+
             public void AddBlock(int x, int y, int z)
             {
-                Block block = _blocksIterator[x, y, z];
+                Block block = _blocks[x, y, z];
                 BlockMesh mesh = _blockMeshProvider.GetBlockMesh(block.Type);
 
                 if (mesh is null)
@@ -82,9 +85,35 @@ namespace Project.World.Generation.Chunks
 
             private bool FaceIsCovered(int x, int y, int z, FaceDirection faceDirection)
             {
-                if (!_blocksIterator.TryGetNext(x, y, z, faceDirection, out Block block))
+                QueryResult<Block> result = _blocks.QueryNextBlock(x, y, z, faceDirection);
+
+                return result.Status is QueryStatus.Failed ?
+                    FaceIsCoveredByAdjacentChunk(x, y, z, faceDirection) :
+                    CoversAdjacentFace(result.Value, faceDirection);
+            }
+
+            private bool FaceIsCoveredByAdjacentChunk(int x, int y, int z, FaceDirection direction)
+            {
+                QueryResult<IChunk> result = _chunksIterator.QueryNextChunk(_chunk.Position, direction);
+
+                if (result.Status is QueryStatus.Failed)
                     return false;
 
+                IBlocksIterator nextBlocks = result.Value.Blocks;
+
+                Vector3Int position = new Vector3Int(x, y, z) - (direction.ToVector() * (_blocks.Size - 1));
+                
+                if (_blocks.Size >= nextBlocks.Size)
+                {
+                    position /= _blocks.Size / nextBlocks.Size;
+                    return CoversAdjacentFace(nextBlocks[position.x, position.y, position.z], direction);
+                }
+                
+                return false;
+            }
+
+            private bool CoversAdjacentFace(Block block, FaceDirection incomingDirection)
+            {
                 BlockType adjacentBlockType = block.Type;
 
                 if (adjacentBlockType is null)
@@ -92,7 +121,7 @@ namespace Project.World.Generation.Chunks
 
                 BlockMesh adjacentBlockMesh = _blockMeshProvider.GetBlockMesh(adjacentBlockType);
 
-                return adjacentBlockMesh.Faces.Opposite(faceDirection).CoversAdjacentFace;
+                return adjacentBlockMesh.Faces.Opposite(incomingDirection).CoversAdjacentFace;
             }
         }
 
