@@ -1,4 +1,5 @@
-﻿using Project.World.Generation.Chunks;
+﻿using System;
+using Project.World.Generation.Chunks;
 
 namespace Project.World
 {
@@ -25,5 +26,11 @@ namespace Project.World
 
             return ChunkLODs.FromInt(lodLevel);
         }
+    }
+    
+    public class IncrementalLODProvider : IChunkLODProvider
+    {
+        public ChunkLOD GetLevel(ChunkPosition basePosition, ChunkPosition chunkPosition) =>
+            ChunkLODs.FromInt(Math.Min(chunkPosition.Distance(basePosition), ChunkLODs.Number - 1));
     }
 }

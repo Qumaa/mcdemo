@@ -5,7 +5,7 @@ namespace Project.World
     public class ChunksIteratorKostyl : IChunksIterator
     {
         public World World;
-        public QueryResult<IChunk> QueryNextChunk(ChunkPosition position, FaceDirection direction) =>
-            World.QueryNextChunk(position, direction);
+        public bool TryGetNextChunk(ChunkPosition position, FaceDirection direction, out IChunk chunk) =>
+            World.TryGetNextChunk(position, direction, out chunk);
     }
 }

@@ -46,7 +46,7 @@ namespace Project.World.Generation.Blocks
             _faces[face.Direction.ToInt()] = face.Face;
 
         public T Opposite(FaceDirection faceDirection) =>
-            this[faceDirection.Negate()];
+            this[faceDirection.Opposite()];
 
         public IEnumerator<T> GetEnumerator() =>
             _faces.Cast<T>().GetEnumerator();

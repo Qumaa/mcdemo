@@ -694,7 +694,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prefab: {fileID: 151356224}
-  _chunksToGenerate: 16
+  _chunksToGenerate: 4
 --- !u!1 &1210157873
 GameObject:
   m_ObjectHideFlags: 0

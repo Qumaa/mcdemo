@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Project.World.Generation.Blocks;
 using UnityEngine;
 
@@ -83,33 +84,79 @@ namespace Project.World.Generation.Chunks
                 return new(builder.Build());
             }
 
-            private bool FaceIsCovered(int x, int y, int z, FaceDirection faceDirection)
-            {
-                QueryResult<Block> result = _blocks.QueryNextBlock(x, y, z, faceDirection);
-
-                return result.Status is QueryStatus.Failed ?
-                    FaceIsCoveredByAdjacentChunk(x, y, z, faceDirection) :
-                    CoversAdjacentFace(result.Value, faceDirection);
-            }
+            private bool FaceIsCovered(int x, int y, int z, FaceDirection faceDirection) =>
+                _blocks.TryGetNextBlock(x, y, z, faceDirection, out Block block) ?
+                    CoversAdjacentFace(block, faceDirection) :
+                    FaceIsCoveredByAdjacentChunk(x, y, z, faceDirection);
 
             private bool FaceIsCoveredByAdjacentChunk(int x, int y, int z, FaceDirection direction)
             {
-                QueryResult<IChunk> result = _chunksIterator.QueryNextChunk(_chunk.Position, direction);
+                if (!_chunksIterator.TryGetNextChunk(_chunk.Position, direction, out IChunk adjacentChunk))
+                    return direction is not FaceDirection.Up and not FaceDirection.Down;
 
-                if (result.Status is QueryStatus.Failed)
-                    return false;
+                direction.Negate();
+                IBlocksIterator adjacentBlocks = adjacentChunk.Blocks;
+                Vector3Int position = new Vector3Int(x, y, z) + direction.ToVector(_blocks.Size - 1);
 
-                IBlocksIterator nextBlocks = result.Value.Blocks;
+                // todo: case when next chunk is larger
+                if (adjacentBlocks.Size > _blocks.Size)
+                    return FaceIsCoveredByLargerChunk(adjacentBlocks, position, direction);
 
-                Vector3Int position = new Vector3Int(x, y, z) - (direction.ToVector() * (_blocks.Size - 1));
+                position /= _blocks.Size / adjacentBlocks.Size;
+                return CoversAdjacentFace(adjacentBlocks[position.x, position.y, position.z], direction);
+            }
+
+            private bool FaceIsCoveredByLargerChunk(IBlocksIterator adjacentBlocks, Vector3Int adjacentPosition,
+                FaceDirection direction)
+            {
+                int adjacentBlocksPerBlock = adjacentBlocks.Size / _blocks.Size;
+                int offset = adjacentBlocksPerBlock - 1;
+                adjacentPosition *= adjacentBlocksPerBlock;
                 
-                if (_blocks.Size >= nextBlocks.Size)
+                int x = 0, y = 0, z = 0;
+                ref int axis1 = ref x, axis2 = ref x;
+
+                switch (direction)
                 {
-                    position /= _blocks.Size / nextBlocks.Size;
-                    return CoversAdjacentFace(nextBlocks[position.x, position.y, position.z], direction);
+                    case FaceDirection.Up:
+                        y += offset;
+                        goto case FaceDirection.Down;
+                    case FaceDirection.Down:
+                        axis2 = ref z;
+                        break;
+                    
+                    case FaceDirection.Right:
+                        x += offset;
+                        goto case FaceDirection.Left;
+                    case FaceDirection.Left:
+                        axis1 = ref y;
+                        axis2 = ref z;
+                        break;
+                        
+                    case FaceDirection.Forward:
+                        z += offset;
+                        goto case FaceDirection.Back;
+                    case FaceDirection.Back:
+                        axis2 = ref y;
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
                 }
-                
-                return false;
+
+                for (; axis1 < adjacentBlocksPerBlock; axis1++)
+                {
+                    for (; axis2 < adjacentBlocksPerBlock; axis2++)
+                        if (!CoversAdjacentFace(
+                                adjacentBlocks[adjacentPosition.x + x, adjacentPosition.y + y, adjacentPosition.z + z],
+                                direction
+                            ))
+                            return false;
+
+                    axis2 -= adjacentBlocksPerBlock;
+                }
+
+                return true;
             }
 
             private bool CoversAdjacentFace(Block block, FaceDirection incomingDirection)
@@ -121,15 +168,15 @@ namespace Project.World.Generation.Chunks
 
                 BlockMesh adjacentBlockMesh = _blockMeshProvider.GetBlockMesh(adjacentBlockType);
 
-                return adjacentBlockMesh.Faces.Opposite(incomingDirection).CoversAdjacentFace;
+                return adjacentBlockMesh.Faces[incomingDirection].CoversAdjacentFace;
             }
         }
 
         private class ChunkFaceBuilder
         {
-            private readonly List<Vector3> _vertices = new();
-            private readonly List<Vector3> _normals = new();
-            private readonly List<int> _triangles = new();
+            private readonly List<Vector3> _vertices = new(1024);
+            private readonly List<Vector3> _normals = new(1024);
+            private readonly List<int> _triangles = new(1536);
 
             public void AddBlockFace(int x, int y, int z, BlockFace face, float verticesScaler)
             {

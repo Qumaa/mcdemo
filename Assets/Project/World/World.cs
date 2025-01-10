@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Project.World.Generation.Chunks;
+using UnityEngine.Profiling;
 
 namespace Project.World
 {
@@ -30,10 +33,17 @@ namespace Project.World
             _chunks = new();
         }
 
-        public QueryResult<IChunk> QueryNextChunk(ChunkPosition position, FaceDirection direction) =>
-            _chunks.TryGetValue(position + direction.ToVector(), out LODChunk chunk) ?
-                QueryResult<IChunk>.Successful(chunk.Chunk) :
-                QueryResult<IChunk>.Failed;
+        public bool TryGetNextChunk(ChunkPosition position, FaceDirection direction, out IChunk chunk)
+        {
+            if (_chunks.TryGetValue(position + direction.ToVector(), out LODChunk lodChunk))
+            {
+                chunk = lodChunk.Chunk;
+                return true;
+            }
+
+            chunk = null;
+            return false;
+        }
 
         public void UpdateChunks(ChunkPosition newCenter)
         {
@@ -43,38 +53,28 @@ namespace Project.World
         public void SetLoadDistance(int distance) =>
             throw new NotImplementedException();
 
-        public async void ForceGenerateChunks()
+        public void ForceGenerateChunks()
         {
             int width = _loadDistance * 2 + 1;
-            ValueTask[] chunkGens = new ValueTask[width * width];
 
-            ChunkPosition start = _center.OffsetCopy(-_loadDistance, 0, -_loadDistance);
+            ChunkPosition start = _center.OffsetCopy(-_loadDistance, -_loadDistance, -_loadDistance);
             
             for (int x = 0; x < width; x++)
+            for (int y = 0; y < width; y++)
             for (int z = 0; z < width; z++)
             {
-                ChunkPosition position = start.OffsetCopy(x, 0, z);
+                ChunkPosition position = start.OffsetCopy(x, y, z);
                 
-                chunkGens[x + z * width] = GenerateChunkAsync(position);
+                GenerateChunk(position);
             }
 
-            await AwaitAll(chunkGens);
-
-            foreach (LODChunk lodChunk in _chunks.Values)
-                lodChunk.GenerateMesh();
+            foreach (LODChunk lodChunk in _chunks.Values.OrderBy(x => x.Chunk.Position.Distance(_center)))
+                GenerateChunkMeshAsync(lodChunk);
         }
 
-        private static async ValueTask AwaitAll(ValueTask[] chunkGens)
+        private void GenerateChunk(ChunkPosition position)
         {
-            for (int i = 0; i < chunkGens.Length; i++)
-                await chunkGens[i].ConfigureAwait(false);
-        }
-
-        private async ValueTask GenerateChunkAsync(ChunkPosition position)
-        {
-            IChunkView meshSetter = await _factory.Create(position);
-            
-            Chunk chunk = new(position, _meshGenerator, _blocksProvider, meshSetter);
+            Chunk chunk = new(position, _meshGenerator, _blocksProvider);
             ChunkLOD lod = _lodProvider.GetLevel(_center, position);
 
             LODChunk lodChunk = new(chunk, lod);
@@ -84,9 +84,42 @@ namespace Project.World
             lodChunk.GenerateBlocks();
         }
 
+        private async void GenerateChunkMeshAsync(LODChunk lodChunk)
+        {
+            IChunkView view = await _factory.Create(lodChunk.Chunk.Position);
+            
+            lodChunk.Chunk.SetView(view);
+            lodChunk.GenerateMesh();
+        }
+        
+        
+
         private void HideChunkFaces()
         {
             
+        }
+
+        private struct ChunksEnumerator : IEnumerator<LODChunk>
+        {
+            private readonly World _world;
+            private ChunkPosition _current;
+            
+            public LODChunk Current => _world._chunks[_current];
+            object IEnumerator.Current => Current;
+            
+            public ChunksEnumerator(World world) 
+            {
+                _world = world;
+                _current = default;
+            }
+
+            public bool MoveNext() =>
+                throw new NotImplementedException();
+
+            public void Reset() =>
+                _current = _world._center;
+
+            public void Dispose() { }
         }
     }
 }

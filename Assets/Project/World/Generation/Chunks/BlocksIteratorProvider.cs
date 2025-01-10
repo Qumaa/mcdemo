@@ -31,8 +31,8 @@ namespace Project.World.Generation.Chunks
                 _generatingHelper.StartGenerating(position, iterator, source);
 
             for (int x = 0; x < size; x++)
-            for (int y = 0; y < size; y++)
             for (int z = 0; z < size; z++)
+            for (int y = 0; y < size; y++)
                 iterator[x, y, z] = blocksGenerator.GetBlock(x, y, z);
 
             return iterator;

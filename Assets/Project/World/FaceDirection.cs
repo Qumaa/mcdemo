@@ -48,6 +48,18 @@ namespace Project.World
                 FaceDirection.Back => Vector3Int.back,
                 _ => throw new ArgumentOutOfRangeException(nameof(faceDirection), faceDirection, null)
             };
+        
+        public static Vector3Int ToVector(this FaceDirection faceDirection, int length) =>
+            faceDirection switch
+            {
+                FaceDirection.Up => new(0, length, 0),
+                FaceDirection.Down => new(0, -length, 0),
+                FaceDirection.Right => new(length, 0, 0),
+                FaceDirection.Left => new(-length, 0, 0),
+                FaceDirection.Forward => new(0, 0, length),
+                FaceDirection.Back => new(0, 0, -length),
+                _ => throw new ArgumentOutOfRangeException(nameof(faceDirection), faceDirection, null)
+            };
 
         public static FaceDirection FromInt(int direction) =>
             direction switch
@@ -61,7 +73,7 @@ namespace Project.World
                 _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
             };
 
-        public static FaceDirection Negate(this FaceDirection faceDirection) =>
+        public static FaceDirection Opposite(this FaceDirection faceDirection) =>
             faceDirection switch
             {
                 FaceDirection.Up => FaceDirection.Down,
@@ -72,5 +84,8 @@ namespace Project.World
                 FaceDirection.Back => FaceDirection.Forward,
                 _ => throw new ArgumentOutOfRangeException(nameof(faceDirection), faceDirection, null)
             };
+
+        public static void Negate(this ref FaceDirection direction) =>
+            direction = direction.Opposite();
     }
 }

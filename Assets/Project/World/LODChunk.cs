@@ -4,10 +4,10 @@ namespace Project.World
 {
     public struct LODChunk 
     {
-        public readonly IChunk Chunk;
+        public readonly Chunk Chunk;
         public ChunkLOD LOD;
 
-        public LODChunk(IChunk chunk, ChunkLOD lod)
+        public LODChunk(Chunk chunk, ChunkLOD lod)
         {
             Chunk = chunk;
             LOD = lod;

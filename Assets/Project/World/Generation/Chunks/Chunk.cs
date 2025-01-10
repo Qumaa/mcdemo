@@ -9,19 +9,22 @@ namespace Project.World.Generation.Chunks
 
         private readonly IChunkMeshGenerator _chunkMeshGenerator;
         private readonly IBlocksIteratorProvider _blocksIteratorProvider;
-        private readonly IChunkView _view;
+        private IChunkView _view;
         public ChunkMesh Mesh => _view.Mesh;
         public ChunkPosition Position { get; }
         public IBlocksIterator Blocks { get; private set; }
 
         public Chunk(ChunkPosition position, IChunkMeshGenerator chunkMeshGenerator,
-            IBlocksIteratorProvider blocksIteratorProvider, IChunkView view)
+            IBlocksIteratorProvider blocksIteratorProvider)
         {
             Position = position;
             _chunkMeshGenerator = chunkMeshGenerator;
             _blocksIteratorProvider = blocksIteratorProvider;
-            _view = view;
         }
+        
+        public void SetView(IChunkView view) =>
+            _view = view;
+        
 
         public void GenerateBlocks(ChunkLOD lod) =>
             Blocks = _blocksIteratorProvider.GetBlockIterator(Position, lod, Blocks);

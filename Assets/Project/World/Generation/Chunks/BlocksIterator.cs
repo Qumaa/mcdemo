@@ -21,57 +21,64 @@ namespace Project.World.Generation.Chunks
             _blocks = new Block[dimension * dimension * dimension];
         }
 
-        public QueryResult<Block> QueryNextBlock(int x, int y, int z, FaceDirection faceDirection)
+        public bool TryGetNextBlock(int x, int y, int z, FaceDirection faceDirection, out Block block)
         {
             switch (faceDirection)
             {
                 case FaceDirection.Up:
-                    if ((y + 1) < Size)
-                        return _Successful(this[x, y + 1, z]);
-
+                    if (++y < Size)
+                    {
+                        block = this[x, y, z];
+                        return true;
+                    }
                     break;
 
                 case FaceDirection.Down:
-                    if ((y - 1) >= 0)
-                        return _Successful(this[x, y - 1, z]);
-
+                    if (--y >= 0)
+                    {
+                        block = this[x, y, z];
+                        return true;
+                    }
                     break;
 
                 case FaceDirection.Left:
-                    if ((x - 1) >= 0)
-                        return _Successful(this[x - 1, y, z]);
-
+                    if (--x >= 0)
+                    {
+                        block = this[x, y, z];
+                        return true;
+                    }
                     break;
 
                 case FaceDirection.Right:
-                    if ((x + 1) < Size)
-                        return _Successful(this[x + 1, y, z]);
-
+                    if (++x < Size)
+                    {
+                        block = this[x, y, z];
+                        return true;
+                    }
                     break;
 
                 case FaceDirection.Forward:
-                    if ((z + 1) < Size)
-                        return _Successful(this[x, y, z + 1]);
-
+                    if (++z < Size)
+                    {
+                        block = this[x, y, z];
+                        return true;
+                    }
                     break;
 
                 case FaceDirection.Back:
-                    if ((z - 1) >= 0)
-                        return _Successful(this[x, y, z - 1]);
-
+                    if (--z >= 0)
+                    {
+                        block = this[x, y, z];
+                        return true;
+                    }
                     break;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(faceDirection), faceDirection, null);
             }
 
-            return _Failed();
-            
-            QueryResult<Block> _Failed() =>
-                QueryResult<Block>.Failed;
-
-            QueryResult<Block> _Successful(Block block) =>
-                new(block, QueryStatus.Successful);
+            block = default;
+            return false;
         }
 
         private int FlattenIndex(int x, int y, int z) =>
