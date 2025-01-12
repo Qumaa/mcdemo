@@ -4,6 +4,6 @@ namespace Project.World.Generation.Chunks
 {
     public interface IChunkMeshGenerator
     {
-        ChunkMesh Generate(IChunk chunk);
+        ChunkMesh Generate(IChunk chunk, IChunksIterator chunksIterator);
     }
 }

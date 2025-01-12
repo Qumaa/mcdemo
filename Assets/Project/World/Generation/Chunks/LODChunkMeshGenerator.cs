@@ -8,23 +8,21 @@ namespace Project.World.Generation.Chunks
     public class LODChunkMeshGenerator : IChunkMeshGenerator
     {
         private readonly IBlockMeshProvider _blockMeshProvider;
-        private readonly IChunksIterator _chunksIterator;
 
         private readonly SixFaces<ChunkFaceBuilder> _faceBuilders;
 
-        public LODChunkMeshGenerator(IBlockMeshProvider blockMeshProvider, IChunksIterator chunksIterator)
+        public LODChunkMeshGenerator(IBlockMeshProvider blockMeshProvider)
         {
             _blockMeshProvider = blockMeshProvider;
-            _chunksIterator = chunksIterator;
 
             _faceBuilders = SixFaces.Empty<ChunkFaceBuilder>();
         }
 
-        public ChunkMesh Generate(IChunk chunk)
+        public ChunkMesh Generate(IChunk chunk, IChunksIterator chunksIterator)
         {
             IBlocksIterator blocks = chunk.Blocks;
             int size = blocks.Size;
-            MeshBuilder meshBuilder = new(this, chunk);
+            MeshBuilder meshBuilder = new(this, chunk, chunksIterator);
 
             for (int x = 0; x < size; x++)
             for (int y = 0; y < size; y++)
@@ -41,17 +39,18 @@ namespace Project.World.Generation.Chunks
             private readonly LODChunkMeshGenerator _generator;
             private readonly int _verticesScaler;
             private readonly IChunk _chunk;
+            private readonly IChunksIterator _chunksIterator;
 
-            public MeshBuilder(LODChunkMeshGenerator generator, IChunk chunk)
+            public MeshBuilder(LODChunkMeshGenerator generator, IChunk chunk, IChunksIterator chunksIterator)
             {
                 _generator = generator;
                 _chunk = chunk;
+                _chunksIterator = chunksIterator;
 
                 _verticesScaler = _CHUNK_SIZE / chunk.Blocks.Size;
             }
 
             private IBlockMeshProvider _blockMeshProvider => _generator._blockMeshProvider;
-            private IChunksIterator _chunksIterator => _generator._chunksIterator;
             private SixFaces<ChunkFaceBuilder> _faceBuilders => _generator._faceBuilders;
 
             private IBlocksIterator _blocks => _chunk.Blocks;

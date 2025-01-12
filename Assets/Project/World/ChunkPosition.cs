@@ -24,6 +24,9 @@ namespace Project.World
         public ChunkPosition OffsetCopy(int x, int y, int z) =>
             new(X + x, Y + y, Z + z);
 
+        public ChunkPosition OffsetCopy(int xyz) =>
+            OffsetCopy(xyz, xyz, xyz);
+
         public Vector3Int ToWorld(Vector3Int localPosition) =>
             _position * _CHUNK_SIZE + localPosition;
 

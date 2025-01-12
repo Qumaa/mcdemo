@@ -16,9 +16,8 @@ namespace Project.World
             _chunkPrefab = chunkPrefab;
         }
 
-        public async ValueTask<IChunkView> Create(ChunkPosition position) =>
-            ( await Object.InstantiateAsync(_chunkPrefab, position.ToWorld(), Quaternion.identity))
-                .GetComponent<IChunkView>();
+        public IChunkView Create(ChunkPosition position) =>
+            Object.Instantiate(_chunkPrefab, position.ToWorld(), Quaternion.identity).GetComponent<IChunkView>();
     }
 
     public struct InstantiatingAwaiter<T> : INotifyCompletion where T : Object

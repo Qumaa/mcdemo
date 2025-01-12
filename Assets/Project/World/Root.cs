@@ -13,17 +13,13 @@ namespace Project.World
 
         private void Start()
         {
-            ChunksIteratorKostyl chunksIterator = new();
-            IChunkMeshGenerator chunkMeshGenerator = new LODChunkMeshGenerator(new DummyMeshProvider(), chunksIterator);
+            IChunkMeshGenerator chunkMeshGenerator = new LODChunkMeshGenerator(new DummyMeshProvider());
             IBlocksIteratorProvider iteratorProvider = new BlocksIteratorProvider(new DummyBlockGenerator());
             IChunkLODProvider lodProvider = new IncrementalLODProvider();
             ChunkPosition basePosition = new(Vector3Int.zero);
             ChunkViewFactory factory = new(_prefab);
 
             World world = new(basePosition, _chunksToGenerate, chunkMeshGenerator, iteratorProvider, lodProvider, factory);
-            chunksIterator.World = world;
-            
-            world.ForceGenerateChunks();
         }
     }
 }
