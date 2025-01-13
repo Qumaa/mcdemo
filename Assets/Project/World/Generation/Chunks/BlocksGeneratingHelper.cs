@@ -100,7 +100,7 @@ public class BlocksGeneratingHelper
                     break;
             }
 
-            copied = _copyFrom[x, y, z];
+            copied = _copyFrom[FlatIndex.FromXYZ(_copyFrom.Size, x, y, z)];
             return true;
         }
 

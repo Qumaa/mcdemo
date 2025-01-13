@@ -21,51 +21,49 @@ namespace Project.World.Generation.Chunks
         public ChunkMesh Generate(IChunk chunk, IChunksIterator chunksIterator)
         {
             IBlocksIterator blocks = chunk.Blocks;
-            int size = blocks.Size;
-            MeshBuilder meshBuilder = new(this, chunk, chunksIterator);
+            GenerationCapture capture = new(this, chunk, chunksIterator);
 
-            for (int x = 0; x < size; x++)
-            for (int y = 0; y < size; y++)
-            for (int z = 0; z < size; z++)
-                meshBuilder.AddBlock(x, y, z);
+            foreach (FlatIndexHandle handle in FlatIndexHandle.Enumerate(blocks.Size))
+                capture.AddBlock(handle);
 
-            return meshBuilder.Build();
+            return capture.Build();
         }
 
-        private readonly ref struct MeshBuilder
+        private readonly ref struct GenerationCapture
         {
             private const int _CHUNK_SIZE = Chunk.STANDARD_SIZE;
             
-            private readonly LODChunkMeshGenerator _generator;
+            private readonly LODChunkMeshGenerator _context;
             private readonly int _verticesScaler;
             private readonly IChunk _chunk;
             private readonly IChunksIterator _chunksIterator;
 
-            public MeshBuilder(LODChunkMeshGenerator generator, IChunk chunk, IChunksIterator chunksIterator)
+            public GenerationCapture(LODChunkMeshGenerator context, IChunk chunk, IChunksIterator chunksIterator)
             {
-                _generator = generator;
+                _context = context;
                 _chunk = chunk;
                 _chunksIterator = chunksIterator;
 
                 _verticesScaler = _CHUNK_SIZE / chunk.Blocks.Size;
             }
 
-            private IBlockMeshProvider _blockMeshProvider => _generator._blockMeshProvider;
-            private SixFaces<ChunkFaceBuilder> _faceBuilders => _generator._faceBuilders;
+            private IBlockMeshProvider _blockMeshProvider => _context._blockMeshProvider;
+            private SixFaces<ChunkFaceBuilder> _faceBuilders => _context._faceBuilders;
 
             private IBlocksIterator _blocks => _chunk.Blocks;
 
-            public void AddBlock(int x, int y, int z)
+            public void AddBlock(FlatIndexHandle handle)
             {
-                Block block = _blocks[x, y, z];
+                Block block = _blocks[handle.FlatIndex];
                 BlockMesh mesh = _blockMeshProvider.GetBlockMesh(block.Type);
 
                 if (mesh is null)
                     return;
 
                 foreach (FaceDirection direction in FaceDirections.Array)
-                    if (!FaceIsCovered(x, y, z, direction))
-                        _faceBuilders[direction].AddBlockFace(x, y, z, mesh.Faces[direction], _verticesScaler);
+                    if (!FaceIsCovered(handle, direction))
+                        _faceBuilders[direction]
+                            .AddBlockFace(handle, mesh.Faces[direction], _verticesScaler);
             }
 
             public ChunkMesh Build()
@@ -83,26 +81,25 @@ namespace Project.World.Generation.Chunks
                 return new(builder.Build());
             }
 
-            private bool FaceIsCovered(int x, int y, int z, FaceDirection faceDirection) =>
-                _blocks.TryGetNextBlock(x, y, z, faceDirection, out Block block) ?
+            private bool FaceIsCovered(FlatIndexHandle handle, FaceDirection faceDirection) =>
+                _blocks.TryGetNextBlock(handle, faceDirection, out Block block) ?
                     CoversAdjacentFace(block, faceDirection) :
-                    FaceIsCoveredByAdjacentChunk(x, y, z, faceDirection);
+                    FaceIsCoveredByAdjacentChunk(handle, faceDirection);
 
-            private bool FaceIsCoveredByAdjacentChunk(int x, int y, int z, FaceDirection direction)
+            private bool FaceIsCoveredByAdjacentChunk(FlatIndexHandle handle, FaceDirection direction)
             {
                 if (!_chunksIterator.TryGetNextChunk(_chunk.Position, direction, out IChunk adjacentChunk))
                     return direction is not FaceDirection.Up and not FaceDirection.Down;
 
                 direction.Negate();
                 IBlocksIterator adjacentBlocks = adjacentChunk.Blocks;
-                Vector3Int position = new Vector3Int(x, y, z) + direction.ToVector(_blocks.Size - 1);
+                Vector3Int position = handle.ToVectorInt() + direction.ToVector(_blocks.Size - 1);
 
-                // todo: case when next chunk is larger
                 if (adjacentBlocks.Size > _blocks.Size)
                     return FaceIsCoveredByLargerChunk(adjacentBlocks, position, direction);
 
                 position /= _blocks.Size / adjacentBlocks.Size;
-                return CoversAdjacentFace(adjacentBlocks[position.x, position.y, position.z], direction);
+                return CoversAdjacentFace(adjacentBlocks.GetBlock(position), direction);
             }
 
             private bool FaceIsCoveredByLargerChunk(IBlocksIterator adjacentBlocks, Vector3Int adjacentPosition,
@@ -147,7 +144,11 @@ namespace Project.World.Generation.Chunks
                 {
                     for (; axis2 < adjacentBlocksPerBlock; axis2++)
                         if (!CoversAdjacentFace(
-                                adjacentBlocks[adjacentPosition.x + x, adjacentPosition.y + y, adjacentPosition.z + z],
+                                adjacentBlocks.GetBlock(
+                                    adjacentPosition.x + x,
+                                    adjacentPosition.y + y,
+                                    adjacentPosition.z + z
+                                ),
                                 direction
                             ))
                             return false;
@@ -177,10 +178,10 @@ namespace Project.World.Generation.Chunks
             private readonly List<Vector3> _normals = new(1024);
             private readonly List<int> _triangles = new(1536);
 
-            public void AddBlockFace(int x, int y, int z, BlockFace face, float verticesScaler)
+            public void AddBlockFace(FlatIndexHandle handle, BlockFace face, float verticesScaler)
             {
                 int verticesOffset = _vertices.Count;
-                Vector3 position = new Vector3(x, y, z) * verticesScaler;
+                Vector3 position = handle.ToVector() * verticesScaler;
 
                 foreach (Vector3 vertex in face.Vertices)
                     _vertices.Add(position + (vertex * verticesScaler));

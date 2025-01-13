@@ -30,10 +30,8 @@ namespace Project.World.Generation.Chunks
             BlocksGeneratingHelper.Session blocksGenerator =
                 _generatingHelper.StartGenerating(position, iterator, source);
 
-            for (int x = 0; x < size; x++)
-            for (int z = 0; z < size; z++)
-            for (int y = 0; y < size; y++)
-                iterator[x, y, z] = blocksGenerator.GetBlock(x, y, z);
+            foreach (FlatIndexXYZ index in FlatIndexXYZ.Enumerate(size))
+                iterator[index.Flat] = blocksGenerator.GetBlock(index.x, index.y, index.z);
 
             return iterator;
         }

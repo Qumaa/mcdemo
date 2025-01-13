@@ -9,10 +9,10 @@ namespace Project.World.Generation.Chunks
 
         public int Size { get; }
 
-        public Block this[int x, int y, int z]
+        public Block this[FlatIndex index]
         {
-            get => _blocks[FlattenIndex(x, y, z)];
-            set => _blocks[FlattenIndex(x, y, z)] = value;
+            get => _blocks[index];
+            set => _blocks[index] = value;
         }
 
         public BlocksIterator(int dimension)
@@ -21,56 +21,38 @@ namespace Project.World.Generation.Chunks
             _blocks = new Block[dimension * dimension * dimension];
         }
 
-        public bool TryGetNextBlock(int x, int y, int z, FaceDirection faceDirection, out Block block)
+        public bool TryGetNextBlock(FlatIndexHandle handle, FaceDirection faceDirection, out Block block)
         {
             switch (faceDirection)
             {
                 case FaceDirection.Up:
-                    if (++y < Size)
-                    {
-                        block = this[x, y, z];
-                        return true;
-                    }
+                    if (handle.IncrementY() < Size)
+                        goto success;
                     break;
 
                 case FaceDirection.Down:
-                    if (--y >= 0)
-                    {
-                        block = this[x, y, z];
-                        return true;
-                    }
+                    if (handle.DecrementY() >= 0)
+                        goto success;
                     break;
 
                 case FaceDirection.Left:
-                    if (--x >= 0)
-                    {
-                        block = this[x, y, z];
-                        return true;
-                    }
+                    if (handle.DecrementX() >= 0)
+                        goto success;
                     break;
 
                 case FaceDirection.Right:
-                    if (++x < Size)
-                    {
-                        block = this[x, y, z];
-                        return true;
-                    }
+                    if (handle.IncrementX() < Size)
+                        goto success;
                     break;
 
                 case FaceDirection.Forward:
-                    if (++z < Size)
-                    {
-                        block = this[x, y, z];
-                        return true;
-                    }
+                    if (handle.IncrementZ() < Size)
+                        goto success;
                     break;
 
                 case FaceDirection.Back:
-                    if (--z >= 0)
-                    {
-                        block = this[x, y, z];
-                        return true;
-                    }
+                    if (handle.DecrementZ() >= 0)
+                        goto success;
                     break;
 
                 default:
@@ -79,9 +61,10 @@ namespace Project.World.Generation.Chunks
 
             block = default;
             return false;
+            
+            success:
+            block = this[handle.FlatIndex];
+            return true;
         }
-
-        private int FlattenIndex(int x, int y, int z) =>
-            x + (y * Size) + (z * Size * Size);
     }
 }

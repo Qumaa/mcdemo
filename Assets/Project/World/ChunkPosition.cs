@@ -10,9 +10,11 @@ namespace Project.World
         
         private readonly Vector3Int _position;
 
-        public int X => _position.x;
-        public int Y => _position.y;
-        public int Z => _position.z;
+        // ReSharper disable InconsistentNaming
+        public int x => _position.x;
+        public int y => _position.y;
+        public int z => _position.z;
+        // ReSharper restore InconsistentNaming
         
         public ChunkPosition(Vector3Int position) 
         {
@@ -22,7 +24,7 @@ namespace Project.World
         public ChunkPosition(int x, int y, int z) : this(new(x, y, z)) { }
 
         public ChunkPosition OffsetCopy(int x, int y, int z) =>
-            new(X + x, Y + y, Z + z);
+            new(this.x + x, this.y + y, this.z + z);
 
         public ChunkPosition OffsetCopy(int xyz) =>
             OffsetCopy(xyz, xyz, xyz);
