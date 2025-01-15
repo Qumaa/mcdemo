@@ -10,10 +10,12 @@ namespace Project.World
 
         public int Extent { get; private set; }
         public LODChunk[] Values => _chunks;
+        public ChunkPosition Center { get; private set; }
 
-        public Chunks(int initialExtent)
+        public Chunks(int initialExtent, ChunkPosition center)
         {
             Extent = initialExtent;
+            Center = center;
             _size = GetSize();
             _chunks = new LODChunk[_size * _size * _size];
         }

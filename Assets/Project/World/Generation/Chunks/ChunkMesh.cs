@@ -7,7 +7,7 @@ namespace Project.World.Generation.Chunks
 {
     public class ChunkMesh : IDisposable
     {
-        public SixFaces<Mesh> Meshes { get; }
+        public SixFaces<Mesh> Meshes { get; private set; }
 
         public ChunkMesh(SixFaces<Mesh> meshes)
         {
@@ -18,6 +18,8 @@ namespace Project.World.Generation.Chunks
         {
             foreach (Mesh mesh in Meshes)
                 Object.Destroy(mesh);
+
+            Meshes = null;
         }
     }
 }

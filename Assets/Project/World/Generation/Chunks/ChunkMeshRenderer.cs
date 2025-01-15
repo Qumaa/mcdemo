@@ -1,4 +1,5 @@
-﻿using Project.World.Generation.Blocks;
+﻿using System;
+using Project.World.Generation.Blocks;
 using UnityEngine;
 
 namespace Project.World.Generation.Chunks
@@ -7,30 +8,41 @@ namespace Project.World.Generation.Chunks
     {
         private ChunkView _view;
 
-        [SerializeField] private MeshFilter _top;
-        [SerializeField] private MeshFilter _bottom;
-        [SerializeField] private MeshFilter _right;
-        [SerializeField] private MeshFilter _left;
-        [SerializeField] private MeshFilter _front;
-        [SerializeField] private MeshFilter _back;
+        [SerializeField] private ChunkFaceStruct _top;
+        [SerializeField] private ChunkFaceStruct _bottom;
+        [SerializeField] private ChunkFaceStruct _right;
+        [SerializeField] private ChunkFaceStruct _left;
+        [SerializeField] private ChunkFaceStruct _front;
+        [SerializeField] private ChunkFaceStruct _back;
 
         private void Awake()
         {
-            SixFaces<MeshFilter> filters = new(
-                new(_top, FaceDirection.Up),
-                new(_bottom, FaceDirection.Down),
-                new(_right, FaceDirection.Right),
-                new(_left, FaceDirection.Left),
-                new(_front, FaceDirection.Forward),
-                new(_back, FaceDirection.Back)
+            ChunkFaces faces = new(
+                new(_top.ToFaceClass(), FaceDirection.Up),
+                new(_bottom.ToFaceClass(), FaceDirection.Down),
+                new(_right.ToFaceClass(), FaceDirection.Right),
+                new(_left.ToFaceClass(), FaceDirection.Left),
+                new(_front.ToFaceClass(), FaceDirection.Forward),
+                new(_back.ToFaceClass(), FaceDirection.Back)
             );
 
-            _view = new(filters);
+            _view = new(faces);
         }
 
+        public ChunkFaces Faces => _view.Faces;
         public ChunkMesh Mesh => _view.Mesh;
 
         public void SetMesh(ChunkMesh mesh) =>
             _view.SetMesh(mesh);
+
+        [Serializable]
+        private struct ChunkFaceStruct
+        {
+            public MeshRenderer Renderer;
+            public MeshFilter Filter;
+
+            public ChunkFace ToFaceClass() =>
+                new(Filter, Renderer);
+        }
     }
 }

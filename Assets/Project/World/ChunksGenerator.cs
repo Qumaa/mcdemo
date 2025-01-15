@@ -23,22 +23,20 @@ namespace Project.World
         private readonly ref struct GenerationCapture
         {
             private readonly ChunksGenerator _context;
-            private readonly ChunkPosition _center;
             private readonly Chunks _chunks;
             
             public GenerationCapture(ChunksGenerator context, ChunkPosition center, int loadDistance)
             {
                 _context = context;
-                _center = center;
 
-                _chunks = new(loadDistance);
+                _chunks = new(loadDistance, center);
             }
 
             public Chunks Generate()
             {
                 int worldSize = _chunks.GetSize();
 
-                ChunkPosition start = _center.OffsetCopy(-_chunks.Extent);
+                ChunkPosition start = _chunks.Center.OffsetCopy(-_chunks.Extent);
             
                 foreach (FlatIndexXYZ index in FlatIndexXYZ.Enumerate(worldSize))
                 {
@@ -50,8 +48,7 @@ namespace Project.World
                     _chunks.Set(position, lodChunk);
                 }
 
-                foreach (LODChunk lodChunk in _chunks.Values)
-                    lodChunk.GenerateMesh();
+                GenerateAndCullMeshes();
 
                 return _chunks;
             }
@@ -59,10 +56,21 @@ namespace Project.World
             private LODChunk CreateChunk(ChunkPosition position)
             {
                 IChunkView view =  _context._factory.Create(position);
-                ChunkLOD lod = _context._lodProvider.GetLevel(_center, position);
+                ChunkLOD lod = _context._lodProvider.GetLevel(_chunks.Center, position);
                 // todo: remove _chunks parameter (remove chunk's responsibility to delegate blocks and mesh generation)
                 Chunk chunk = new(position, _context._meshGenerator, _context._blocksProvider, _chunks, view);
                 return new(chunk, lod);
+            }
+
+            private void GenerateAndCullMeshes()
+            {
+                ChunkMeshCuller culler = new(_chunks.Center);
+                
+                foreach (LODChunk lodChunk in _chunks.Values)
+                {
+                    lodChunk.GenerateMesh();
+                    culler.Cull(lodChunk.Chunk.View.Faces, lodChunk.Chunk.Position);
+                }
             }
         }
     }

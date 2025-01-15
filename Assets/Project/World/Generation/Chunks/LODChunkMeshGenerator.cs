@@ -61,7 +61,7 @@ namespace Project.World.Generation.Chunks
                     return;
 
                 foreach (FaceDirection direction in FaceDirections.Array)
-                    if (!FaceIsCovered(handle, direction))
+                    if (!FaceIsCovered(ref handle, direction))
                         _faceBuilders[direction]
                             .AddBlockFace(handle, mesh.Faces[direction], _verticesScaler);
             }
@@ -81,12 +81,12 @@ namespace Project.World.Generation.Chunks
                 return new(builder.Build());
             }
 
-            private bool FaceIsCovered(FlatIndexHandle handle, FaceDirection faceDirection) =>
+            private bool FaceIsCovered(ref FlatIndexHandle handle, FaceDirection faceDirection) =>
                 _blocks.TryGetNextBlock(handle, faceDirection, out Block block) ?
                     CoversAdjacentFace(block, faceDirection) :
-                    FaceIsCoveredByAdjacentChunk(handle, faceDirection);
+                    FaceIsCoveredByAdjacentChunk(ref handle, faceDirection);
 
-            private bool FaceIsCoveredByAdjacentChunk(FlatIndexHandle handle, FaceDirection direction)
+            private bool FaceIsCoveredByAdjacentChunk(ref FlatIndexHandle handle, FaceDirection direction)
             {
                 if (!_chunksIterator.TryGetNextChunk(_chunk.Position, direction, out IChunk adjacentChunk))
                     return direction is not FaceDirection.Up and not FaceDirection.Down;
@@ -202,6 +202,9 @@ namespace Project.World.Generation.Chunks
 
             public Mesh BuildMesh()
             {
+                if (_vertices.Count is 0)
+                    return null;
+                
                 Mesh mesh = new()
                 {
                     vertices = _vertices.ToArray(), normals = _normals.ToArray(), triangles = _triangles.ToArray()

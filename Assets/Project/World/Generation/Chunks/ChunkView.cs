@@ -1,16 +1,15 @@
 ﻿using Project.World.Generation.Blocks;
-using UnityEngine;
 
 namespace Project.World.Generation.Chunks
 {
     public class ChunkView : IChunkView
     {
-        private readonly SixFaces<MeshFilter> _filters;
-
-        public ChunkView(SixFaces<MeshFilter> filters)
+        public ChunkView(ChunkFaces faces)
         {
-            _filters = filters;
+            Faces = faces;
         }
+
+        public ChunkFaces Faces { get; }
 
         public ChunkMesh Mesh { get; private set; }
 
@@ -20,7 +19,7 @@ namespace Project.World.Generation.Chunks
             Mesh = mesh;
 
             foreach (FaceDirection direction in FaceDirections.Array)
-                _filters[direction].mesh = mesh.Meshes[direction];
+                Faces[direction].SetMesh(mesh.Meshes[direction]);
         }
     }
 }

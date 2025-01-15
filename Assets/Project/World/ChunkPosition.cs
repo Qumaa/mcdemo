@@ -8,32 +8,38 @@ namespace Project.World
     {
         private const int _CHUNK_SIZE = Chunk.STANDARD_SIZE;
         
-        private readonly Vector3Int _position;
 
         // ReSharper disable InconsistentNaming
-        public int x => _position.x;
-        public int y => _position.y;
-        public int z => _position.z;
+        public readonly int x;
+        public readonly int y;
+        public readonly int z;
         // ReSharper restore InconsistentNaming
         
-        public ChunkPosition(Vector3Int position) 
+        public ChunkPosition(Vector3Int position) : this(position.x, position.y, position.z)
         {
-            _position = position;
         }
 
-        public ChunkPosition(int x, int y, int z) : this(new(x, y, z)) { }
+        public ChunkPosition(int x, int y, int z) : this()
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
 
         public ChunkPosition OffsetCopy(int x, int y, int z) =>
             new(this.x + x, this.y + y, this.z + z);
 
         public ChunkPosition OffsetCopy(int xyz) =>
-            OffsetCopy(xyz, xyz, xyz);
+            new(x + xyz, y + xyz, z + xyz);
 
         public Vector3Int ToWorld(Vector3Int localPosition) =>
-            _position * _CHUNK_SIZE + localPosition;
+            new Vector3Int(x, y, z) * _CHUNK_SIZE + localPosition;
 
         public Vector3Int ToWorld() =>
             ToWorld(Vector3Int.zero);
+
+        public Vector3Int SignedDifference(ChunkPosition other) =>
+            SignedDifference(this, other);
 
         public Vector3Int Difference(ChunkPosition other) =>
             Difference(this, other);
@@ -50,9 +56,18 @@ namespace Project.World
 
         public static Vector3Int Difference(ChunkPosition origin, ChunkPosition other)
         {
-            Vector3Int difference = (other - origin)._position;
+            Vector3Int difference = SignedDifference(origin, other);
 
             return new(Math.Abs(difference.x), Math.Abs(difference.z), Math.Abs(difference.y));
+        }
+
+        public static Vector3Int SignedDifference(ChunkPosition origin, ChunkPosition other)
+        {
+            return new(
+                other.x - origin.x,
+                other.y - origin.y,
+                other.z - origin.z
+                );
         }
 
         public static ChunkPosition FromWorld(Vector3Int worldPosition) =>
@@ -72,31 +87,55 @@ namespace Project.World
             worldPosition / _CHUNK_SIZE;
 
         public static ChunkPosition operator -(ChunkPosition left, ChunkPosition right) =>
-            new(left._position - right._position);
-        
+            new(
+                left.x - right.x,
+                left.y - right.y,
+                left.z - right.z
+            );
+
         public static ChunkPosition operator -(ChunkPosition left, Vector3Int right) =>
-            new(left._position - right);
+            new(
+                left.x - right.x,
+                left.y - right.y,
+                left.z - right.z
+            );
 
         public static ChunkPosition operator +(ChunkPosition left, ChunkPosition right) =>
-            new(left._position + right._position);
+            new(
+                left.x + right.x,
+                left.y + right.y,
+                left.z + right.z
+            );
         
         public static ChunkPosition operator +(ChunkPosition left, Vector3Int right) =>
-            new(left._position + right);
+            new(
+                left.x + right.x,
+                left.y + right.y,
+                left.z + right.z
+            );
 
         public static ChunkPosition operator *(ChunkPosition val, int scaler) =>
-            new(val._position * scaler);
+            new(
+                val.x * scaler,
+                val.y * scaler,
+                val.z * scaler
+            );
         
         public static ChunkPosition operator /(ChunkPosition val, int divider) =>
-            new(val._position / divider);
+            new(
+                val.x / divider,
+                val.y / divider,
+                val.z / divider
+            );
 
         public bool Equals(ChunkPosition other) =>
-            _position.Equals(other._position);
+            x == other.x && y == other.y && z == other.z;
 
         public override bool Equals(object obj) =>
             obj is ChunkPosition other && Equals(other);
 
         public override int GetHashCode() =>
-            _position.GetHashCode();
+            HashCode.Combine(x, y, z);
 
         public static bool operator ==(ChunkPosition left, ChunkPosition right) =>
             left.Equals(right);

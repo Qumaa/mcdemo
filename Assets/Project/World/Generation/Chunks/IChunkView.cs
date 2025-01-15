@@ -1,7 +1,10 @@
-﻿namespace Project.World.Generation.Chunks
+﻿using Project.World.Generation.Blocks;
+
+namespace Project.World.Generation.Chunks
 {
     public interface IChunkView
     {
+        ChunkFaces Faces { get; }
         ChunkMesh Mesh { get; }
         void SetMesh(ChunkMesh mesh);
     }

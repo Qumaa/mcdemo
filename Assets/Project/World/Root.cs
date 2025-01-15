@@ -1,4 +1,5 @@
-﻿using Project.World.Generation.Blocks;
+﻿using System.Collections;
+using Project.World.Generation.Blocks;
 using Project.World.Generation.Chunks;
 using Project.World.Generation.Terrain;
 using UnityEngine;
@@ -15,11 +16,15 @@ namespace Project.World
         {
             IChunkMeshGenerator chunkMeshGenerator = new LODChunkMeshGenerator(new DummyMeshProvider());
             IBlocksIteratorProvider iteratorProvider = new BlocksIteratorProvider(new DummyBlockGenerator());
-            IChunkLODProvider lodProvider = new ChunkLODProvider();
+            IChunkLODProvider lodProvider = new IncrementalLODProvider();
             ChunkPosition basePosition = new(Vector3Int.zero);
             ChunkViewFactory factory = new(_prefab);
 
+            Profiler.BeginSample("WorldGen");
             World world = new(basePosition, _chunksToGenerate, chunkMeshGenerator, iteratorProvider, lodProvider, factory);
+            Profiler.EndSample();
+            
+            Debug.Break();
         }
     }
 }
