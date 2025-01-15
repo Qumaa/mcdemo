@@ -46,9 +46,6 @@
 
                 public bool MoveNext() =>
                     _enumerator.MoveNext();
-
-                public void Reset() =>
-                    _enumerator.Reset();
             }
         }
 

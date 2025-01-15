@@ -30,9 +30,15 @@ namespace Project.World.Generation.Chunks
             BlocksGeneratingHelper.Session blocksGenerator =
                 _generatingHelper.StartGenerating(position, iterator, source);
 
-            foreach (FlatIndexXYZ index in FlatIndexXYZ.Enumerate(size))
+            var enumerable = FlatIndexXYZ.Enumerate(size);
+            var enumerator = enumerable.GetEnumerator();
+            
+            while(enumerator.MoveNext())
+            // foreach (FlatIndexXYZ index in FlatIndexXYZ.Enumerate(size))
+            {
+                var index = enumerator.Current;
                 iterator[index.Flat] = blocksGenerator.GetBlock(index.x, index.y, index.z);
-
+            }
             return iterator;
         }
     }

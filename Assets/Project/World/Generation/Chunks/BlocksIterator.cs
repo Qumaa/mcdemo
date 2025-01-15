@@ -26,32 +26,32 @@ namespace Project.World.Generation.Chunks
             switch (faceDirection)
             {
                 case FaceDirection.Up:
-                    if (handle.IncrementY() < Size)
+                    if (handle.TryIncrementY())
                         goto success;
                     break;
 
                 case FaceDirection.Down:
-                    if (handle.DecrementY() >= 0)
+                    if (handle.TryDecrementY())
                         goto success;
                     break;
 
                 case FaceDirection.Left:
-                    if (handle.DecrementX() >= 0)
+                    if (handle.TryDecrementX())
                         goto success;
                     break;
 
                 case FaceDirection.Right:
-                    if (handle.IncrementX() < Size)
+                    if (handle.TryIncrementX())
                         goto success;
                     break;
 
                 case FaceDirection.Forward:
-                    if (handle.IncrementZ() < Size)
+                    if (handle.TryIncrementZ())
                         goto success;
                     break;
 
                 case FaceDirection.Back:
-                    if (handle.DecrementZ() >= 0)
+                    if (handle.TryDecrementZ())
                         goto success;
                     break;
 

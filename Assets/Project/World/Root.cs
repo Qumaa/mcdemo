@@ -1,9 +1,11 @@
 ﻿using System.Collections;
+using System.Diagnostics;
 using Project.World.Generation.Blocks;
 using Project.World.Generation.Chunks;
 using Project.World.Generation.Terrain;
 using UnityEngine;
 using UnityEngine.Profiling;
+using Debug = UnityEngine.Debug;
 
 namespace Project.World
 {
@@ -12,19 +14,23 @@ namespace Project.World
         [SerializeField] private GameObject _prefab;
         [SerializeField] private int _chunksToGenerate = 16;
 
+        private Stopwatch _stopwatch = new();
+
         private void Start()
         {
             IChunkMeshGenerator chunkMeshGenerator = new LODChunkMeshGenerator(new DummyMeshProvider());
             IBlocksIteratorProvider iteratorProvider = new BlocksIteratorProvider(new DummyBlockGenerator());
-            IChunkLODProvider lodProvider = new IncrementalLODProvider();
+            IChunkLODProvider lodProvider = new ChunkLODProvider();
             ChunkPosition basePosition = new(Vector3Int.zero);
             ChunkViewFactory factory = new(_prefab);
 
-            Profiler.BeginSample("WorldGen");
+            _stopwatch.Start();
             World world = new(basePosition, _chunksToGenerate, chunkMeshGenerator, iteratorProvider, lodProvider, factory);
-            Profiler.EndSample();
+            _stopwatch.Stop();
             
+            Debug.Log($"{_stopwatch.ElapsedMilliseconds}ms to generate chunks");
             Debug.Break();
         }
+
     }
 }

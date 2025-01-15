@@ -37,7 +37,7 @@ namespace Project.World
                 int worldSize = _chunks.GetSize();
 
                 ChunkPosition start = _chunks.Center.OffsetCopy(-_chunks.Extent);
-            
+
                 foreach (FlatIndexXYZ index in FlatIndexXYZ.Enumerate(worldSize))
                 {
                     ChunkPosition position = start.OffsetCopy(index.x, index.y, index.z);

@@ -4,9 +4,11 @@ namespace Project.World
 {
     public ref struct FlatIndexHandle
     {
-        private readonly int _size, _size2, _size3;
-        private int _x, _y, _z;
         private int _flatIndex;
+        private int _x;
+        private int _y;
+        private int _z;
+        private int _size;
         
         // ReSharper disable InconsistentNaming
         // ReSharper disable ConvertToAutoProperty
@@ -30,61 +32,60 @@ namespace Project.World
         public FlatIndexHandle(int arraySize)
         {
             _size = arraySize;
-            _size2 = _size * _size;
-            _size3 = _size2 * _size;
 
-            _x = _y = _z = _flatIndex = 0;
+            _x = _y = _z = 0;
+            _flatIndex = 0;
         }
         
-        public int IncrementZ()
+        public bool TryIncrementZ()
         {
             _z++;
-            _flatIndex += _size2;
-            return z;
-        }
-        public int DecrementZ()
-        {
-            _z--;
-            _flatIndex -= _size2;
-            return z;
-        }
-        public void ResetZ()
-        {
-            _z -= _size;
-            _flatIndex -= _size3;
+            _flatIndex += _size * _size;
+            return _z < _size;
         }
 
-        public int IncrementY()
+
+        public bool TryDecrementZ()
+        {
+            _z--;
+            _flatIndex -= _size * _size;
+            return _z >= 0;
+        }
+
+        public bool TryIncrementY()
         {
             _y++;
             _flatIndex += _size;
-            return y;
+            return _y < _size;
         }
-        public int DecrementY()
+
+        public bool TryDecrementY()
         {
             _y--;
             _flatIndex -= _size;
-            return y;
-        }
-        public void ResetY()
-        {
-            _y -= _size;
-            _flatIndex -= _size2;
+            return _y >= 0;
         }
 
-        public int IncrementX()
+        private void ResetY()
+        {
+            _y -= _size;
+            _flatIndex -= _size * _size;
+        }
+
+        public bool TryIncrementX()
         {
             _x++;
             _flatIndex++;
-            return x;
+            return _x < _size;
         }
-        public int DecrementX()
+        public bool TryDecrementX()
         {
             _x--;
             _flatIndex--;
-            return x;
+            return _x >= 0;
         }
-        public void ResetX()
+
+        private void ResetX()
         {
             _x -= _size;
             _flatIndex -= _size;
@@ -102,41 +103,31 @@ namespace Project.World
 
             public FlatIndexHandle Current => _handle;
 
-            public Enumerator(int arraySize)
-            {
-                _handle = new(arraySize, 0, 0, -1);
-            }
+            public Enumerator(int arraySize) : this(new FlatIndexHandle(arraySize)) { }
 
             public Enumerator(in FlatIndexHandle handle)
             {
                 _handle = handle;
-                Reset();
+                ResetHandle();
             }
 
             public bool MoveNext()
             {
-                int size = _handle.Size;
-                
-                _handle.IncrementZ();
-                if (_handle.z < size)
+                if (_handle.TryIncrementX())
                     return true;
+                _handle.ResetX();
 
-                _handle.ResetZ();
-
-                _handle.IncrementY();
-                if (_handle.y < size)
+                if (_handle.TryIncrementY())
                     return true;
-
                 _handle.ResetY();
 
-                _handle.IncrementX();
-                return _handle.x < size;
+                return _handle.TryIncrementZ();
             }
 
-            public void Reset()
+            private void ResetHandle()
             {
-                _handle._x = _handle._y = 0;
-                _handle._z = -1;
+                _handle._z = _handle._y  = 0;
+                _handle._x = _handle._flatIndex = -1;
             }
         }
     }
