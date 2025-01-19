@@ -1,7 +1,5 @@
 ﻿using System;
 using Project.World.Generation.Blocks;
-using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Project.World.Generation.Chunks
 {
@@ -18,24 +16,6 @@ namespace Project.World.Generation.Chunks
         {
             foreach (ChunkFace face in Faces)
                 face.Dispose();
-        }
-    }
-
-    public class ChunkFace : IDisposable
-    {
-        public Mesh Mesh { get; private set; }
-        public EdgeOpacity Opacity { get; }
-
-        public ChunkFace(Mesh mesh, EdgeOpacity opacity)
-        {
-            Mesh = mesh;
-            Opacity = opacity;
-        }
-
-        public void Dispose()
-        {
-            Object.Destroy(Mesh);
-            Mesh = null;
         }
     }
 }

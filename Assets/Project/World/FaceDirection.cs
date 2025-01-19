@@ -37,7 +37,7 @@ namespace Project.World
                 _ => throw new ArgumentOutOfRangeException(nameof(faceDirection), faceDirection, null)
             };
         
-        public static Vector3Int ToVector(this FaceDirection faceDirection) =>
+        public static Vector3Int ToVectorInt(this FaceDirection faceDirection) =>
             faceDirection switch
             {
                 FaceDirection.Up => Vector3Int.up,
@@ -49,7 +49,7 @@ namespace Project.World
                 _ => throw new ArgumentOutOfRangeException(nameof(faceDirection), faceDirection, null)
             };
         
-        public static Vector3Int ToVector(this FaceDirection faceDirection, int length) =>
+        public static Vector3Int ToVectorInt(this FaceDirection faceDirection, int length) =>
             faceDirection switch
             {
                 FaceDirection.Up => new(0, length, 0),

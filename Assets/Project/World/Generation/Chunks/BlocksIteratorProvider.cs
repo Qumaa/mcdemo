@@ -37,24 +37,9 @@ namespace Project.World.Generation.Chunks
                 _generatingHelper.StartGenerating(position, iterator, source);
 
             foreach (FlatIndexXYZ index in FlatIndexXYZ.Enumerate(size))
-            {
-                Block block = blocksGenerator.GetBlock(index.x, index.y, index.z);
-                
-                iterator[index.Flat] = block;
-                UpdateIteratorEdgesData(iterator, index);
-            }
+                iterator[index.Flat] = blocksGenerator.GetBlock(index.x, index.y, index.z);
 
             return iterator;
-        }
-
-        private void UpdateIteratorEdgesData(IBlocksIterator iterator, FlatIndexXYZ index)
-        {
-            int size = iterator.Size - 1;
-
-            if (index.x is 0)
-            {
-                
-            }
         }
     }
 }
