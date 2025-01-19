@@ -7,19 +7,35 @@ namespace Project.World.Generation.Chunks
 {
     public class ChunkMesh : IDisposable
     {
-        public SixFaces<Mesh> Meshes { get; private set; }
+        public SixFaces<ChunkFace> Faces { get; }
 
-        public ChunkMesh(SixFaces<Mesh> meshes)
+        public ChunkMesh(SixFaces<ChunkFace> faces)
         {
-            Meshes = meshes;
+            Faces = faces;
         }
 
         public void Dispose()
         {
-            foreach (Mesh mesh in Meshes)
-                Object.Destroy(mesh);
+            foreach (ChunkFace face in Faces)
+                face.Dispose();
+        }
+    }
 
-            Meshes = null;
+    public class ChunkFace : IDisposable
+    {
+        public Mesh Mesh { get; private set; }
+        public EdgeOpacity Opacity { get; }
+
+        public ChunkFace(Mesh mesh, EdgeOpacity opacity)
+        {
+            Mesh = mesh;
+            Opacity = opacity;
+        }
+
+        public void Dispose()
+        {
+            Object.Destroy(Mesh);
+            Mesh = null;
         }
     }
 }

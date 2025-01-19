@@ -83,9 +83,12 @@ namespace Project.World
         public void Set(ChunkPosition position, LODChunk lodChunk)
         {
             position = WorldToIndex(position);
-            int index = FlatIndex.FromXYZ(_size, position.x, position.y, position.z);
+            FlatIndex index = FlatIndex.FromXYZ(_size, position.x, position.y, position.z);
 
-            _chunks[index] = lodChunk;
+            SetDirect(index, lodChunk);
         }
+
+        public void SetDirect(FlatIndex index, LODChunk lodChunk) =>
+            _chunks[index] = lodChunk;
     }
 }

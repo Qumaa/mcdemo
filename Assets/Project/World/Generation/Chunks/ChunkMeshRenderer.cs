@@ -17,7 +17,7 @@ namespace Project.World.Generation.Chunks
 
         private void Awake()
         {
-            ChunkFaces faces = new(
+            ChunkFaceViews faceViews = new(
                 new(_top.ToFaceClass(), FaceDirection.Up),
                 new(_bottom.ToFaceClass(), FaceDirection.Down),
                 new(_right.ToFaceClass(), FaceDirection.Right),
@@ -26,10 +26,10 @@ namespace Project.World.Generation.Chunks
                 new(_back.ToFaceClass(), FaceDirection.Back)
             );
 
-            _view = new(faces);
+            _view = new(faceViews);
         }
 
-        public ChunkFaces Faces => _view.Faces;
+        public ChunkFaceViews Faces => _view.Faces;
         public ChunkMesh Mesh => _view.Mesh;
 
         public void SetMesh(ChunkMesh mesh) =>
@@ -41,7 +41,7 @@ namespace Project.World.Generation.Chunks
             public MeshRenderer Renderer;
             public MeshFilter Filter;
 
-            public ChunkFace ToFaceClass() =>
+            public ChunkFaceView ToFaceClass() =>
                 new(Filter, Renderer);
         }
     }

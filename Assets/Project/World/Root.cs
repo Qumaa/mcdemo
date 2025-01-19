@@ -19,7 +19,7 @@ namespace Project.World
         private void Start()
         {
             IChunkMeshGenerator chunkMeshGenerator = new LODChunkMeshGenerator(new DummyMeshProvider());
-            IBlocksIteratorProvider iteratorProvider = new BlocksIteratorProvider(new DummyBlockGenerator());
+            BlocksIteratorProvider iteratorProvider = new(new DummyBlockGenerator());
             IChunkLODProvider lodProvider = new ChunkLODProvider();
             ChunkPosition basePosition = new(Vector3Int.zero);
             ChunkViewFactory factory = new(_prefab);

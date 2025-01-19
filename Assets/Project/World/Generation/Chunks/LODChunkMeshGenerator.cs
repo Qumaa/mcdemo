@@ -29,7 +29,7 @@ namespace Project.World.Generation.Chunks
             return capture.Build();
         }
 
-        private readonly ref struct GenerationCapture
+        private ref struct GenerationCapture
         {
             private const int _CHUNK_SIZE = Chunk.STANDARD_SIZE;
             
@@ -37,6 +37,7 @@ namespace Project.World.Generation.Chunks
             private readonly int _verticesScaler;
             private readonly IChunk _chunk;
             private readonly IChunksIterator _chunksIterator;
+            private FlatIndexHandle _handle;
 
             public GenerationCapture(LODChunkMeshGenerator context, IChunk chunk, IChunksIterator chunksIterator)
             {
@@ -45,6 +46,7 @@ namespace Project.World.Generation.Chunks
                 _chunksIterator = chunksIterator;
 
                 _verticesScaler = _CHUNK_SIZE / chunk.Blocks.Size;
+                _handle = default;
             }
 
             private IBlockMeshProvider _blockMeshProvider => _context._blockMeshProvider;
@@ -54,21 +56,17 @@ namespace Project.World.Generation.Chunks
 
             public void AddBlock(FlatIndexHandle handle)
             {
-                Block block = _blocks[handle.FlatIndex];
-                BlockMesh mesh = _blockMeshProvider.GetBlockMesh(block.Type);
+                _handle = handle;
+                
+                BlockMesh blockMesh = GetBlockMesh();
 
-                if (mesh is null)
-                    return;
-
-                foreach (FaceDirection direction in FaceDirections.Array)
-                    if (!FaceIsCovered(ref handle, direction))
-                        _faceBuilders[direction]
-                            .AddBlockFace(handle, mesh.Faces[direction], _verticesScaler);
+                if (blockMesh is not null)
+                    AddBlockFaces(blockMesh);
             }
 
             public ChunkMesh Build()
             {
-                SixFacesBuilder<Mesh> builder = new();
+                SixFacesBuilder<ChunkFace> builder = new();
 
                 foreach (FaceDirection direction in FaceDirections.Array)
                 {
@@ -81,12 +79,40 @@ namespace Project.World.Generation.Chunks
                 return new(builder.Build());
             }
 
-            private bool FaceIsCovered(ref FlatIndexHandle handle, FaceDirection faceDirection) =>
-                _blocks.TryGetNextBlock(handle, faceDirection, out Block block) ?
-                    CoversAdjacentFace(block, faceDirection) :
-                    FaceIsCoveredByAdjacentChunk(ref handle, faceDirection);
+            private void AddBlockFaces(BlockMesh blockMesh)
+            {
+                foreach (FaceDirection direction in FaceDirections.Array)
+                {
+                    if (FaceIsCovered(_handle, direction, out bool onEdge))
+                        continue;
 
-            private bool FaceIsCoveredByAdjacentChunk(ref FlatIndexHandle handle, FaceDirection direction)
+                    Vector3 position = _handle.ToVector();
+                    BlockFace face = blockMesh.Faces[direction];
+                    bool transparentOnEdge = onEdge && !face.CoversAdjacentFace;
+                    
+                    _faceBuilders[direction].AddBlockFace(position, face, _verticesScaler, transparentOnEdge);
+                }
+            }
+
+            private BlockMesh GetBlockMesh()
+            {
+                Block block = _blocks[_handle.FlatIndex];
+                BlockMesh mesh = _blockMeshProvider.GetBlockMesh(block.Type);
+                return mesh;
+            }
+
+            private bool FaceIsCovered(FlatIndexHandle handle, FaceDirection faceDirection, out bool onEdge)
+            {
+                onEdge = false;
+
+                if (_blocks.TryGetNextBlock(handle, faceDirection, out Block nextBlock))
+                    CoversAdjacentFace(nextBlock, faceDirection);
+
+                onEdge = true;
+                return FaceIsCoveredByAdjacentChunk(handle, faceDirection);
+            }
+
+            private bool FaceIsCoveredByAdjacentChunk(FlatIndexHandle handle, FaceDirection direction)
             {
                 if (!_chunksIterator.TryGetNextChunk(_chunk.Position, direction, out IChunk adjacentChunk))
                     return direction is not FaceDirection.Up and not FaceDirection.Down;
@@ -159,7 +185,7 @@ namespace Project.World.Generation.Chunks
                 return true;
             }
 
-            private bool CoversAdjacentFace(Block block, FaceDirection incomingDirection)
+            private bool CoversAdjacentFace(Block block, FaceDirection direction)
             {
                 BlockType adjacentBlockType = block.Type;
 
@@ -168,7 +194,7 @@ namespace Project.World.Generation.Chunks
 
                 BlockMesh adjacentBlockMesh = _blockMeshProvider.GetBlockMesh(adjacentBlockType);
 
-                return adjacentBlockMesh.Faces[incomingDirection].CoversAdjacentFace;
+                return adjacentBlockMesh.Faces[direction].CoversAdjacentFace;
             }
         }
 
@@ -177,11 +203,15 @@ namespace Project.World.Generation.Chunks
             private readonly List<Vector3> _vertices = new(1024);
             private readonly List<Vector3> _normals = new(1024);
             private readonly List<int> _triangles = new(1536);
+            private int _transparentEdgeCounter = 0;
 
-            public void AddBlockFace(FlatIndexHandle handle, BlockFace face, float verticesScaler)
+            public void AddBlockFace(Vector3 position, BlockFace face, float verticesScaler, bool transparentOnEdge)
             {
                 int verticesOffset = _vertices.Count;
-                Vector3 position = handle.ToVector() * verticesScaler;
+                position *= verticesScaler;
+                
+                if (transparentOnEdge)
+                    AddTransparentBlockFace();
 
                 foreach (Vector3 vertex in face.Vertices)
                     _vertices.Add(position + (vertex * verticesScaler));
@@ -193,14 +223,18 @@ namespace Project.World.Generation.Chunks
                     _normals.Add(normal);
             }
 
+            public void AddTransparentBlockFace() =>
+                _transparentEdgeCounter++;
+
             public void Clear()
             {
                 _vertices.Clear();
                 _normals.Clear();
                 _triangles.Clear();
+                _transparentEdgeCounter = 0;
             }
 
-            public Mesh BuildMesh()
+            public ChunkFace BuildMesh()
             {
                 if (_vertices.Count is 0)
                     return null;
@@ -212,7 +246,7 @@ namespace Project.World.Generation.Chunks
 
                 mesh.UploadMeshData(true);
 
-                return mesh;
+                return new(mesh, new(_transparentEdgeCounter));
             }
         }
     }

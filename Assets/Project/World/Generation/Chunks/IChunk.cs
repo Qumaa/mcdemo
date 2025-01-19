@@ -7,7 +7,5 @@ namespace Project.World.Generation.Chunks
         IChunkView View { get; }
         ChunkPosition Position { get; }
         IBlocksIterator Blocks { get; }
-        void GenerateBlocks(ChunkLOD lod);
-        void GenerateMesh(ChunkLOD lod);
     }
 }

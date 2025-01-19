@@ -4,12 +4,12 @@ namespace Project.World.Generation.Chunks
 {
     public class ChunkView : IChunkView
     {
-        public ChunkView(ChunkFaces faces)
+        public ChunkView(ChunkFaceViews faceViews)
         {
-            Faces = faces;
+            Faces = faceViews;
         }
 
-        public ChunkFaces Faces { get; }
+        public ChunkFaceViews Faces { get; }
 
         public ChunkMesh Mesh { get; private set; }
 
@@ -19,7 +19,7 @@ namespace Project.World.Generation.Chunks
             Mesh = mesh;
 
             foreach (FaceDirection direction in FaceDirections.Array)
-                Faces[direction].SetMesh(mesh.Meshes[direction]);
+                Faces[direction].SetMesh(mesh.Faces[direction].Mesh);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Project.World.Generation.Blocks
 {
     public class SixFaces<T> : IEnumerable<T>
     {
-        private readonly T[] _faces;
+        protected readonly T[] _faces;
 
         public T this[FaceDirection faceDirection] => _faces[faceDirection.ToInt()];
 

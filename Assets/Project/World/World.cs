@@ -9,7 +9,7 @@ namespace Project.World
         private Chunks _chunks;
 
         public World(ChunkPosition center, int loadDistance, IChunkMeshGenerator meshGenerator,
-            IBlocksIteratorProvider blocksProvider, IChunkLODProvider lodProvider, ChunkViewFactory factory)
+            BlocksIteratorProvider blocksProvider, IChunkLODProvider lodProvider, ChunkViewFactory factory)
         {
             _generator = new(meshGenerator, blocksProvider, lodProvider, factory);
             _chunks = _generator.Generate(center, loadDistance);

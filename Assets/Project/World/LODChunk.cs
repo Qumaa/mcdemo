@@ -12,11 +12,5 @@ namespace Project.World
             Chunk = chunk;
             LOD = lod;
         }
-        
-        public void GenerateBlocks() =>
-            Chunk.GenerateBlocks(LOD);
-
-        public void GenerateMesh() =>
-            Chunk.GenerateMesh(LOD);
     }
 }

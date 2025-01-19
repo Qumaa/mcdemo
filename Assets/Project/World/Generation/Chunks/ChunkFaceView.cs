@@ -2,12 +2,12 @@
 
 namespace Project.World.Generation.Chunks
 {
-    public class ChunkFace
+    public class ChunkFaceView
     {
         private readonly MeshFilter _filter;
         private readonly MeshRenderer _renderer;
         
-        public ChunkFace(MeshFilter filter, MeshRenderer renderer)
+        public ChunkFaceView(MeshFilter filter, MeshRenderer renderer)
         {
             _filter = filter;
             _renderer = renderer;

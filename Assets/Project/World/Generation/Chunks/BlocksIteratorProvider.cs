@@ -21,7 +21,13 @@ namespace Project.World.Generation.Chunks
             PopulateIterator(position, GetIterator(lod, previous), previous);
 
         private IBlocksIterator GetIterator(ChunkLOD lod, IBlocksIterator previous) =>
-            _pool.Get(lod, previous) ?? new BlocksIterator(lod.ChunkSize());
+            _pool.Get(lod, previous) ?? CreateIterator(lod);
+
+        private static IBlocksIterator CreateIterator(ChunkLOD lod)
+        {
+            int size = lod.ChunkSize();
+            return size > 1 ? new BlocksIterator(size) : new SingleBlockIterator();
+        }
 
         private IBlocksIterator PopulateIterator(ChunkPosition position, IBlocksIterator iterator,
             IBlocksIterator source)
@@ -30,16 +36,25 @@ namespace Project.World.Generation.Chunks
             BlocksGeneratingHelper.Session blocksGenerator =
                 _generatingHelper.StartGenerating(position, iterator, source);
 
-            var enumerable = FlatIndexXYZ.Enumerate(size);
-            var enumerator = enumerable.GetEnumerator();
-            
-            while(enumerator.MoveNext())
-            // foreach (FlatIndexXYZ index in FlatIndexXYZ.Enumerate(size))
+            foreach (FlatIndexXYZ index in FlatIndexXYZ.Enumerate(size))
             {
-                var index = enumerator.Current;
-                iterator[index.Flat] = blocksGenerator.GetBlock(index.x, index.y, index.z);
+                Block block = blocksGenerator.GetBlock(index.x, index.y, index.z);
+                
+                iterator[index.Flat] = block;
+                UpdateIteratorEdgesData(iterator, index);
             }
+
             return iterator;
+        }
+
+        private void UpdateIteratorEdgesData(IBlocksIterator iterator, FlatIndexXYZ index)
+        {
+            int size = iterator.Size - 1;
+
+            if (index.x is 0)
+            {
+                
+            }
         }
     }
 }

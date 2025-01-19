@@ -5,11 +5,11 @@ namespace Project.World
     public class ChunksGenerator
     {
         private readonly IChunkMeshGenerator _meshGenerator;
-        private readonly IBlocksIteratorProvider _blocksProvider;
         private readonly IChunkLODProvider _lodProvider;
+        private readonly BlocksIteratorProvider _blocksProvider;
         private readonly ChunkViewFactory _factory;
         
-        public ChunksGenerator(IChunkMeshGenerator meshGenerator, IBlocksIteratorProvider blocksProvider, IChunkLODProvider lodProvider, ChunkViewFactory factory)
+        public ChunksGenerator(IChunkMeshGenerator meshGenerator, BlocksIteratorProvider blocksProvider, IChunkLODProvider lodProvider, ChunkViewFactory factory)
         {
             _meshGenerator = meshGenerator;
             _blocksProvider = blocksProvider;
@@ -38,14 +38,16 @@ namespace Project.World
 
                 ChunkPosition start = _chunks.Center.OffsetCopy(-_chunks.Extent);
 
+                // todo: generate chunks starting from center and around only when current chunk doesn't hide the adjacent one
                 foreach (FlatIndexXYZ index in FlatIndexXYZ.Enumerate(worldSize))
                 {
                     ChunkPosition position = start.OffsetCopy(index.x, index.y, index.z);
 
                     LODChunk lodChunk = CreateChunk(position);
-                    lodChunk.GenerateBlocks();
+                    GenerateBlocks(lodChunk);
+                    
                 
-                    _chunks.Set(position, lodChunk);
+                    _chunks.SetDirect(index.Flat, lodChunk);
                 }
 
                 GenerateAndCullMeshes();
@@ -56,11 +58,19 @@ namespace Project.World
             private LODChunk CreateChunk(ChunkPosition position)
             {
                 IChunkView view =  _context._factory.Create(position);
+                Chunk chunk = new(position, view);
+                
                 ChunkLOD lod = _context._lodProvider.GetLevel(_chunks.Center, position);
-                // todo: remove _chunks parameter (remove chunk's responsibility to delegate blocks and mesh generation)
-                Chunk chunk = new(position, _context._meshGenerator, _context._blocksProvider, _chunks, view);
+                
                 return new(chunk, lod);
             }
+
+            private void GenerateBlocks(LODChunk lodChunk) =>
+                lodChunk.Chunk.Blocks = _context._blocksProvider.GetBlockIterator(
+                    lodChunk.Chunk.Position,
+                    lodChunk.LOD,
+                    lodChunk.Chunk.Blocks
+                );
 
             private void GenerateAndCullMeshes()
             {
@@ -68,8 +78,10 @@ namespace Project.World
                 
                 foreach (LODChunk lodChunk in _chunks.Values)
                 {
-                    lodChunk.GenerateMesh();
-                    culler.Cull(lodChunk.Chunk.View.Faces, lodChunk.Chunk.Position);
+                    Chunk chunk = lodChunk.Chunk;
+                    
+                    chunk.View.SetMesh(_context._meshGenerator.Generate(chunk, _chunks));
+                    culler.Cull(chunk.View.Faces, chunk.Position);
                 }
             }
         }
