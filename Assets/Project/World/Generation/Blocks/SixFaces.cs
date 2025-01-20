@@ -20,12 +20,10 @@ namespace Project.World.Generation.Blocks
         public T Front => this[FaceDirection.Forward];
 
         public SixFaces(Directional<T> face1, Directional<T> face2, Directional<T> face3, Directional<T> face4,
-            Directional<T> face5, Directional<T> face6)
+            Directional<T> face5, Directional<T> face6) : this()
         {
             Validate.Faces(face1, face2, face3, face4, face5, face6);
-
-            _faces = new T[6];
-
+            
             AppendFace(face1);
             AppendFace(face2);
             AppendFace(face3);
@@ -34,15 +32,18 @@ namespace Project.World.Generation.Blocks
             AppendFace(face6);
         }
 
-        private SixFaces(Directional<T>[] faces)
+        public SixFaces()
         {
-            _faces = new T[faces.Length];
+            _faces = new T[6];
+        }
 
+        private SixFaces(Directional<T>[] faces) : this()
+        {
             foreach (Directional<T> face in faces)
                 AppendFace(face);
         }
 
-        private void AppendFace(Directional<T> face) =>
+        public void AppendFace(Directional<T> face) =>
             _faces[face.Direction.ToInt()] = face.Face;
 
         public T Opposite(FaceDirection faceDirection) =>

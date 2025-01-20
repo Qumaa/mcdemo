@@ -5,14 +5,11 @@ namespace Project.World
 {
     public class World : IChunksSupervisor
     {
-        private readonly ChunksGenerator _generator;
+        private readonly IChunksGenerator _generator;
         private Chunks _chunks;
 
-        public World(ChunkPosition center, int loadDistance, IChunkMeshGenerator meshGenerator,
-            BlocksIteratorProvider blocksProvider, IChunkLODProvider lodProvider, ChunkViewFactory factory)
-        {
-            _generator = new(meshGenerator, blocksProvider, lodProvider, factory);
-            _chunks = _generator.Generate(center, loadDistance);
+        public World(Chunks chunks) {
+            _chunks = chunks;
         }
 
         public void UpdateChunks(ChunkPosition newCenter)

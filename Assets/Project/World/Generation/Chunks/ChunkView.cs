@@ -19,7 +19,7 @@ namespace Project.World.Generation.Chunks
             Mesh = mesh;
 
             foreach (FaceDirection direction in FaceDirections.Array)
-                Faces[direction].SetMesh(mesh.Faces[direction].Mesh);
+                Faces[direction].SetMesh(mesh.Faces[direction]?.Mesh);
         }
     }
 }

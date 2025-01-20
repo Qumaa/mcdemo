@@ -43,7 +43,7 @@ namespace Project.World.Generation.Chunks
         public ChunkFace BuildMesh()
         {
             if (_vertices.Count is 0)
-                return new(null, new(_transparentEdgeCounter));
+                return null;
                 
             Mesh mesh = new()
             {

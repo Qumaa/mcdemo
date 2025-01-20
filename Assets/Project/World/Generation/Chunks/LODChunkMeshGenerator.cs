@@ -1,4 +1,5 @@
-﻿using Project.World.Generation.Blocks;
+﻿using System;
+using Project.World.Generation.Blocks;
 using UnityEngine;
 
 namespace Project.World.Generation.Chunks
@@ -19,10 +20,10 @@ namespace Project.World.Generation.Chunks
             _faceBuilders = SixFaces.Empty<ChunkFaceBuilder>();
         }
 
-        public ChunkMesh Generate(IChunk chunk, IChunksIterator chunksIterator)
+        public ChunkMesh Generate(IChunk chunk, IChunksIterator chunksIterator, ChunkCullingFlags cullingFlags)
         {
             IBlocksIterator blocks = chunk.Blocks;
-            GenerationScope scope = new(_faceBuilders, chunk, chunksIterator, _blockMeshProvider, _transparencyTester);
+            GenerationScope scope = new(_faceBuilders, chunk, chunksIterator, _blockMeshProvider, _transparencyTester, cullingFlags);
 
             foreach (FlatIndexHandle handle in FlatIndexHandle.Enumerate(blocks.Size))
                 scope.AddBlock(handle);
@@ -35,14 +36,16 @@ namespace Project.World.Generation.Chunks
             private const int _CHUNK_SIZE = Chunk.STANDARD_SIZE;
 
             private readonly int _verticesScaler;
+            private readonly ChunkCullingFlags _cullingFlags;
             private readonly SixFaces<ChunkFaceBuilder> _faceBuilders;
             private ChunkMeshGenerationContext _context;
 
             public GenerationScope(SixFaces<ChunkFaceBuilder> faceBuilders, IChunk chunk,
                 IChunksIterator chunksIterator, IBlockMeshProvider blockMeshProvider,
-                ITransparencyTester transparencyTester)
+                ITransparencyTester transparencyTester, ChunkCullingFlags cullingFlags)
             {
                 _faceBuilders = faceBuilders;
+                _cullingFlags = cullingFlags;
                 _context = new(chunk, chunksIterator, blockMeshProvider, transparencyTester);
 
                 _verticesScaler = _CHUNK_SIZE / chunk.Blocks.Size;
@@ -60,22 +63,22 @@ namespace Project.World.Generation.Chunks
 
             public ChunkMesh BuildMesh()
             {
-                SixFacesBuilder<ChunkFace> builder = new();
+                SixFaces<ChunkFace> faces = new();
 
-                foreach (FaceDirection direction in FaceDirections.Array)
+                foreach (FaceDirection direction in _cullingFlags)
                 {
                     ChunkFaceBuilder faceBuilder = _faceBuilders[direction];
 
-                    builder.AppendFace(new(faceBuilder.BuildMesh(), direction));
+                    faces.AppendFace(new(faceBuilder.BuildMesh(), direction));
                     faceBuilder.Clear();
                 }
 
-                return new(builder.Build());
+                return new(faces);
             }
 
             private void ProcessBlockFaces(BlockMesh blockMesh)
             {
-                foreach (FaceDirection direction in FaceDirections.Array)
+                foreach (FaceDirection direction in _cullingFlags)
                 {
                     BlockFaceInfo info = _context.FetchFaceInfo(direction);
                     

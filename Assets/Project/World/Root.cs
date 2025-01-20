@@ -19,13 +19,15 @@ namespace Project.World
         private void Start()
         {
             IChunkMeshGenerator chunkMeshGenerator = new LODChunkMeshGenerator(new DummyMeshProvider(), new TransparencyTester());
-            BlocksIteratorProvider iteratorProvider = new(new DummyBlockGenerator());
+            IBlocksIteratorProvider iteratorProvider = new BlocksIteratorProvider(new DummyBlockGenerator());
             IChunkLODProvider lodProvider = new ChunkLODProvider();
             ChunkPosition basePosition = new(Vector3Int.zero);
             ChunkViewFactory factory = new(_prefab);
 
+            IChunksGenerator generator = new ChunksGenerator(chunkMeshGenerator, iteratorProvider, lodProvider, factory);
+
             _stopwatch.Start();
-            World world = new(basePosition, _chunksToGenerate, chunkMeshGenerator, iteratorProvider, lodProvider, factory);
+            World world = new(generator.Generate(basePosition, _chunksToGenerate));
             _stopwatch.Stop();
             
             Debug.Log($"{_stopwatch.ElapsedMilliseconds}ms to generate chunks");

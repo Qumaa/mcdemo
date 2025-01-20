@@ -2,14 +2,14 @@
 
 namespace Project.World
 {
-    public class ChunksGenerator
+    public class ChunksGenerator : IChunksGenerator
     {
         private readonly IChunkMeshGenerator _meshGenerator;
         private readonly IChunkLODProvider _lodProvider;
-        private readonly BlocksIteratorProvider _blocksProvider;
+        private readonly IBlocksIteratorProvider _blocksProvider;
         private readonly ChunkViewFactory _factory;
         
-        public ChunksGenerator(IChunkMeshGenerator meshGenerator, BlocksIteratorProvider blocksProvider, IChunkLODProvider lodProvider, ChunkViewFactory factory)
+        public ChunksGenerator(IChunkMeshGenerator meshGenerator, IBlocksIteratorProvider blocksProvider, IChunkLODProvider lodProvider, ChunkViewFactory factory)
         {
             _meshGenerator = meshGenerator;
             _blocksProvider = blocksProvider;
@@ -18,14 +18,14 @@ namespace Project.World
         }
 
         public Chunks Generate(ChunkPosition center, int loadDistance) =>
-            new GenerationCapture(this, center, loadDistance).Generate();
+            new GenerationScope(this, center, loadDistance).Generate();
 
-        private readonly ref struct GenerationCapture
+        private readonly ref struct GenerationScope
         {
             private readonly ChunksGenerator _context;
             private readonly Chunks _chunks;
             
-            public GenerationCapture(ChunksGenerator context, ChunkPosition center, int loadDistance)
+            public GenerationScope(ChunksGenerator context, ChunkPosition center, int loadDistance)
             {
                 _context = context;
 
@@ -74,14 +74,15 @@ namespace Project.World
 
             private void GenerateAndCullMeshes()
             {
-                ChunkMeshCuller culler = new(_chunks.Center);
+                ChunkCuller culler = new(_chunks.Center);
                 
                 foreach (LODChunk lodChunk in _chunks.Values)
                 {
                     Chunk chunk = lodChunk.Chunk;
-                    
-                    chunk.View.SetMesh(_context._meshGenerator.Generate(chunk, _chunks));
-                    culler.Cull(chunk.View.Faces, chunk.Position);
+
+                    chunk.View.SetMesh(
+                        _context._meshGenerator.Generate(chunk, _chunks, culler.GetFlags(chunk.Position))
+                    );
                 }
             }
         }

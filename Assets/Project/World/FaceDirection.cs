@@ -15,14 +15,14 @@ namespace Project.World
 
     public static class FaceDirections
     {
-        public static FaceDirection[] Array =
+        public static readonly FaceDirection[] Array =
         {
             FaceDirection.Up,
             FaceDirection.Down,
-            FaceDirection.Left,
             FaceDirection.Right,
-            FaceDirection.Back,
-            FaceDirection.Forward
+            FaceDirection.Left,
+            FaceDirection.Forward,
+            FaceDirection.Back
         };
 
         public static int ToInt(this FaceDirection faceDirection) =>
