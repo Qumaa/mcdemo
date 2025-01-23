@@ -1,4 +1,6 @@
-﻿namespace Project.World
+﻿using UnityEngine;
+
+namespace Project.World
 {
     public readonly ref struct FlatIndexXYZ
     {
@@ -15,6 +17,7 @@
 
         public FlatIndexXYZ(FlatIndexHandle handle) : this(handle.FlatIndex, handle.x, handle.y, handle.z) { }
         public FlatIndexXYZ(int size, int x, int y, int z) : this(FlatIndex.FromXYZ(size, x, y, z), x, y, z) { }
+        public FlatIndexXYZ(int size, Vector3Int vector) : this(size, vector.x, vector.y, vector.z) { }
 
         public static Enumerable Enumerate(int arraySize) =>
             new(arraySize);

@@ -35,6 +35,9 @@ namespace Project.World.Generation.Chunks
         public void SetMesh(ChunkMesh mesh) =>
             _view.SetMesh(mesh);
 
+        public void Cull(DirectionFlags flags) =>
+            _view.Cull(flags);
+
         private void OnDrawGizmosSelected()
         {
             Gizmos.DrawWireCube(transform.position + new Vector3(8, 8, 8), new(16, 16, 16));

@@ -7,5 +7,6 @@ namespace Project.World.Generation.Chunks
         ChunkFaceViews Faces { get; }
         ChunkMesh Mesh { get; }
         void SetMesh(ChunkMesh mesh);
+        void Cull(DirectionFlags flags);
     }
 }

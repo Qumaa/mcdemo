@@ -6,18 +6,19 @@ namespace Project.World
     public class Chunks : IChunksIterator
     {
         private readonly LODChunk[] _chunks;
-        private int _size;
 
         public int Extent { get; private set; }
         public LODChunk[] Values => _chunks;
+        public int Size { get; }
+
         public ChunkPosition Center { get; private set; }
 
         public Chunks(int initialExtent, ChunkPosition center)
         {
             Extent = initialExtent;
             Center = center;
-            _size = GetSize();
-            _chunks = new LODChunk[_size * _size * _size];
+            Size = LoadDistanceToWorldSize(initialExtent);
+            _chunks = new LODChunk[Size * Size * Size];
         }
 
         public bool TryGetNextChunk(ChunkPosition position, FaceDirection direction, out IChunk chunk)
@@ -35,13 +36,10 @@ namespace Project.World
             return true;
         }
 
-        public int GetSize() =>
-            LoadDistanceToWorldSize(Extent);
-        
         public void Set(ChunkPosition position, LODChunk lodChunk)
         {
             position = WorldToIndex(position);
-            FlatIndex index = FlatIndex.FromXYZ(_size, position.x, position.y, position.z);
+            FlatIndex index = FlatIndex.FromXYZ(Size, position.x, position.y, position.z);
 
             SetDirect(index, lodChunk);
         }
@@ -52,7 +50,7 @@ namespace Project.World
         public FlatIndexHandle GetIndexHandle(ChunkPosition position)
         {
             position = WorldToIndex(position);
-            return new(_size, position.x, position.y, position.z);
+            return new(Size, position.x, position.y, position.z);
         }
 
         public ChunkPosition IndexToWorld(in FlatIndexXYZ index) =>

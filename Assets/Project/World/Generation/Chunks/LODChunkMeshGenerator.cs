@@ -20,10 +20,10 @@ namespace Project.World.Generation.Chunks
             _faceBuilders = SixFaces.Empty<ChunkFaceBuilder>();
         }
 
-        public ChunkMesh Generate(IChunk chunk, IChunksIterator chunksIterator, ChunkCullingFlags cullingFlags)
+        public ChunkMesh Generate(IChunk chunk, IChunksIterator chunksIterator)
         {
             IBlocksIterator blocks = chunk.Blocks;
-            GenerationScope scope = new(_faceBuilders, chunk, chunksIterator, _blockMeshProvider, _transparencyTester, cullingFlags);
+            GenerationScope scope = new(_faceBuilders, chunk, chunksIterator, _blockMeshProvider, _transparencyTester);
 
             foreach (FlatIndexHandle handle in FlatIndexHandle.Enumerate(blocks.Size))
                 scope.AddBlock(handle);
@@ -36,16 +36,14 @@ namespace Project.World.Generation.Chunks
             private const int _CHUNK_SIZE = Chunk.STANDARD_SIZE;
 
             private readonly int _verticesScaler;
-            private readonly ChunkCullingFlags _cullingFlags;
             private readonly SixFaces<ChunkFaceBuilder> _faceBuilders;
             private ChunkMeshGenerationContext _context;
 
             public GenerationScope(SixFaces<ChunkFaceBuilder> faceBuilders, IChunk chunk,
                 IChunksIterator chunksIterator, IBlockMeshProvider blockMeshProvider,
-                ITransparencyTester transparencyTester, ChunkCullingFlags cullingFlags)
+                ITransparencyTester transparencyTester)
             {
                 _faceBuilders = faceBuilders;
-                _cullingFlags = cullingFlags;
                 _context = new(chunk, chunksIterator, blockMeshProvider, transparencyTester);
 
                 _verticesScaler = _CHUNK_SIZE / chunk.Blocks.Size;
@@ -85,9 +83,6 @@ namespace Project.World.Generation.Chunks
 
                     if (info.IsOnEdge && _context.TransparencyTester.IsTransparent(face))
                         faceBuilder.AddTransparentFace();
-                    
-                    if (!_cullingFlags[direction])
-                        continue;
                     
                     if (info.IsCovered || face is null)
                         continue;

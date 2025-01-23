@@ -1,4 +1,5 @@
-﻿using Project.World.Generation.Blocks;
+﻿using System;
+using Project.World.Generation.Blocks;
 
 namespace Project.World.Generation.Chunks
 {
@@ -19,7 +20,16 @@ namespace Project.World.Generation.Chunks
             Mesh = mesh;
 
             foreach (FaceDirection direction in FaceDirections.Array)
-                Faces[direction].SetMesh(mesh.Faces[direction]?.Mesh);
+                Faces[direction].SetMesh(mesh.Faces[direction].Mesh);
+        }
+
+        public void Cull(DirectionFlags flags)
+        {
+            if (Mesh is null)
+                return;
+
+            foreach (FaceDirection direction in FaceDirections.Array)
+                Faces[direction].SetVisibility(flags[direction]);
         }
     }
 }

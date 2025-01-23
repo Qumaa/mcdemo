@@ -35,7 +35,7 @@ namespace Project.World
 
             public Chunks Generate()
             {
-                int worldSize = _chunks.GetSize();
+                int worldSize = _chunks.Size;
 
                 ChunkPosition start = _chunks.Center.OffsetCopy(-_chunks.Extent);
 
@@ -84,8 +84,7 @@ namespace Project.World
                     chunk.View.SetMesh(
                         _context._meshGenerator.Generate(
                             chunk,
-                            _chunks,
-                            ChunkCullingFlags.FromSignedDifference(center, chunk.Position)
+                            _chunks
                         )
                     );
                 }

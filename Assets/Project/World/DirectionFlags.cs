@@ -1,9 +1,10 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace Project.World
 {
-    public readonly struct ChunkCullingFlags
+    public readonly struct DirectionFlags
     {
         private static readonly int _maskTop = GetMask(FaceDirection.Up);
         private static readonly int _maskBottom = GetMask(FaceDirection.Down);
@@ -16,11 +17,11 @@ namespace Project.World
         
         private readonly int _values;
 
-        public static ChunkCullingFlags Full => new(_maskFull);
+        public static DirectionFlags All => new(_maskFull);
 
-        public bool this[FaceDirection direction] => GetVisibility(_values, direction);
+        public bool this[FaceDirection direction] => GetFlag(_values, direction);
 
-        public ChunkCullingFlags(bool top, bool bottom, bool right, bool left, bool forward, bool back)
+        public DirectionFlags(bool top, bool bottom, bool right, bool left, bool forward, bool back)
         {
             _values = 0;
 
@@ -43,16 +44,35 @@ namespace Project.World
                 _values |= _maskBack;
         }
         
-        private ChunkCullingFlags(int values) {
+        private DirectionFlags(int values) {
             _values = values;
         }
 
-        public Enumerable EnumerateVisibleFaces() =>
+        public Mutable MutableCopy() =>
+            new(_values);
+
+        public DirectionFlags Combine(in DirectionFlags other, FlagsCombination combination)
+        {
+            int values = combination switch
+            {
+                FlagsCombination.OR => _values | other._values,
+                FlagsCombination.NOR => ~(_values | other._values),
+                FlagsCombination.AND => _values & other._values,
+                FlagsCombination.NAND => ~(_values & other._values),
+                FlagsCombination.XOR => _values ^ other._values,
+                FlagsCombination.NXOR => ~(_values ^ other._values),
+                _ => throw new ArgumentOutOfRangeException(nameof(combination), combination, null)
+            };
+
+            return new(values);
+        }
+
+        public Enumerable EnumerateIncludedDirections() =>
             new(this, true);
-        public Enumerable EnumerateHiddenFaces() =>
+        public Enumerable EnumerateExcludedFaces() =>
             new(this, false);
 
-        public static ChunkCullingFlags FromSignedDifference(Vector3Int signedDifference)
+        public static DirectionFlags FromSignedDifference(Vector3Int signedDifference)
         {
             int x = signedDifference.x;
             int y = signedDifference.y;
@@ -68,25 +88,55 @@ namespace Project.World
             );
         }
 
-        public static ChunkCullingFlags FromSignedDifference(ChunkPosition center, ChunkPosition other) =>
+        public static DirectionFlags FromSignedDifference(ChunkPosition center, ChunkPosition other) =>
             FromSignedDifference(center.SignedDifference(other));
 
-        private static bool GetVisibility(int values, FaceDirection direction) =>
-            GetVisibility(values, direction.ToInt());
+        private static bool GetFlag(int values, FaceDirection direction) =>
+            GetFlag(values, direction.ToInt());
 
-        private static bool GetVisibility(int values, int direction) =>
+        private static bool GetFlag(int values, int direction) =>
             (values >> direction & 1) is 1;
 
         private static int GetMask(FaceDirection direction) =>
-            1 << direction.ToInt();
+            GetMask(direction.ToInt());
+        
+        private static int GetMask(int direction) =>
+            1 << direction;
+
+        public struct Mutable
+        {
+            private int _values;
+            
+            public Mutable(int values) 
+            {
+                _values = values;
+            }
+
+            public DirectionFlags Finish() =>
+                new(_values);
+
+            public bool GetFlag(FaceDirection direction) =>
+                DirectionFlags.GetFlag(_values, direction);
+
+            public void SetFlag(FaceDirection direction, bool value) =>
+                SetFlag(direction.ToInt(), value);
+
+            private void SetFlag(int direction, bool value)
+            {
+                if (value)
+                    _values |= GetMask(direction);
+                else
+                    _values &= ~GetMask(direction);
+            }
+        }
 
         [StructLayout(LayoutKind.Auto)]
         public readonly ref struct Enumerable
         {
-            private readonly ChunkCullingFlags _flags;
+            private readonly DirectionFlags _flags;
             private readonly bool _enumerateVisible;
 
-            public Enumerable(ChunkCullingFlags flags, bool enumerateVisible)
+            public Enumerable(DirectionFlags flags, bool enumerateVisible)
             {
                 _flags = flags;
                 _enumerateVisible = enumerateVisible;
@@ -114,12 +164,22 @@ namespace Project.World
                 public bool MoveNext()
                 {
                     while (++_current < FaceDirections.Array.Length)
-                        if (_xorSwitch ^ GetVisibility(_values, _current))
+                        if (_xorSwitch ^ GetFlag(_values, _current))
                             return true;
 
                     return false;
                 }
             }
         }
+    }
+
+    public enum FlagsCombination
+    {
+        OR,
+        NOR,
+        AND,
+        NAND,
+        XOR,
+        NXOR
     }
 }
