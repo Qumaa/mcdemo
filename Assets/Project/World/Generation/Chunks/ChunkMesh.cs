@@ -14,8 +14,8 @@ namespace Project.World.Generation.Chunks
 
         public void Dispose()
         {
-            foreach (ChunkFace face in Faces)
-                face.Dispose();
+            foreach (Directional<ChunkFace> directional in Faces)
+                directional.Face?.Dispose();
         }
     }
 }

@@ -35,6 +35,11 @@ namespace Project.World.Generation.Chunks
         public void SetMesh(ChunkMesh mesh) =>
             _view.SetMesh(mesh);
 
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.DrawWireCube(transform.position + new Vector3(8, 8, 8), new(16, 16, 16));
+        }
+
         [Serializable]
         private struct ChunkFaceStruct
         {

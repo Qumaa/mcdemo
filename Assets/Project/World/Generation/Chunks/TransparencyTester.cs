@@ -5,6 +5,6 @@ namespace Project.World.Generation.Chunks
     public class TransparencyTester : ITransparencyTester
     {
         public bool IsTransparent(BlockFace face) =>
-            !face.CoversAdjacentFace;
+            face is null || !face.CoversAdjacentFace;
     }
 }

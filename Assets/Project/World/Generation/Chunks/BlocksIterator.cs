@@ -23,47 +23,14 @@ namespace Project.World.Generation.Chunks
 
         public bool TryGetNextBlock(FlatIndexHandle handle, FaceDirection faceDirection, out Block block)
         {
-            switch (faceDirection)
-            {
-                case FaceDirection.Up:
-                    if (handle.TryIncrementY())
-                        goto success;
-                    break;
-
-                case FaceDirection.Down:
-                    if (handle.TryDecrementY())
-                        goto success;
-                    break;
-
-                case FaceDirection.Left:
-                    if (handle.TryDecrementX())
-                        goto success;
-                    break;
-
-                case FaceDirection.Right:
-                    if (handle.TryIncrementX())
-                        goto success;
-                    break;
-
-                case FaceDirection.Forward:
-                    if (handle.TryIncrementZ())
-                        goto success;
-                    break;
-
-                case FaceDirection.Back:
-                    if (handle.TryDecrementZ())
-                        goto success;
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(faceDirection), faceDirection, null);
-            }
+            if (handle.TryGetNextIndex(faceDirection, out FlatIndexXYZ index))
+                goto success;
 
             block = default;
             return false;
             
             success:
-            block = this[handle.FlatIndex];
+            block = this[index.Flat];
             return true;
         }
     }

@@ -13,10 +13,8 @@
             this.z = z;
         }
 
-        public FlatIndexXYZ(in FlatIndexHandle handle) : this(handle.FlatIndex, handle.x, handle.y, handle.z) { }
-
-        public static implicit operator FlatIndex(FlatIndexXYZ xyz) =>
-            xyz.Flat;
+        public FlatIndexXYZ(FlatIndexHandle handle) : this(handle.FlatIndex, handle.x, handle.y, handle.z) { }
+        public FlatIndexXYZ(int size, int x, int y, int z) : this(FlatIndex.FromXYZ(size, x, y, z), x, y, z) { }
 
         public static Enumerable Enumerate(int arraySize) =>
             new(arraySize);
@@ -48,6 +46,11 @@
                     _enumerator.MoveNext();
             }
         }
+    }
 
+    public static class FlatIndexXYZExtensions
+    {
+        public static ChunkPosition ToChunkPosition(this ref FlatIndexXYZ index) =>
+            new(index.x, index.y, index.z);
     }
 }

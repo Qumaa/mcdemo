@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Project.World
 {
@@ -134,10 +135,65 @@ namespace Project.World
 
     public static class FlatIndexHandleExtensions
     {
-        public static Vector3Int ToVectorInt(this FlatIndexHandle handle) =>
+        public static FlatIndexXYZ ToFlatIndexXYZ(this ref FlatIndexHandle handle) =>
+            new(handle);
+        public static ChunkPosition ToChunkPosition(this ref FlatIndexHandle handle) =>
+            new(handle.x, handle.y, handle.z);
+        public static Vector3Int ToVectorInt(this ref FlatIndexHandle handle) =>
             new(handle.x, handle.y, handle.z);
 
-        public static Vector3 ToVector(this FlatIndexHandle handle) =>
+        public static Vector3 ToVector(this ref FlatIndexHandle handle) =>
             new(handle.x, handle.y, handle.z);
+
+        public static bool TryGetNextIndex(this ref FlatIndexHandle handle, FaceDirection direction, out FlatIndexXYZ index)
+        {
+            int size = handle.Size;
+            int x = handle.x;
+            int y = handle.y;
+            int z = handle.z;
+
+            switch (direction)
+            {
+                case FaceDirection.Up:
+                    if (++y < size)
+                        goto success;
+                    break;
+
+                case FaceDirection.Down:
+                    if (--y >= 0)
+                        goto success;
+                    break;
+
+                case FaceDirection.Left:
+                    if (--x >= 0)
+                        goto success;
+                    break;
+
+                case FaceDirection.Right:
+                    if (++x < size)
+                        goto success;
+                    break;
+
+                case FaceDirection.Forward:
+                    if (++z < size)
+                        goto success;
+                    break;
+
+                case FaceDirection.Back:
+                    if (--z >= 0)
+                        goto success;
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+            }
+            
+            index = default;
+            return false;
+            
+            success:
+            index = new(size, x, y, z);
+            return true;
+        }
     }
 }

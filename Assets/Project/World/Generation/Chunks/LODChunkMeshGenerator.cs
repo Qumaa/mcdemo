@@ -57,15 +57,14 @@ namespace Project.World.Generation.Chunks
 
                 BlockMesh blockMesh = GetBlockMesh();
 
-                if (blockMesh is not null)
-                    ProcessBlockFaces(blockMesh);
+                ProcessBlockFaces(blockMesh);
             }
 
             public ChunkMesh BuildMesh()
             {
                 SixFaces<ChunkFace> faces = new();
 
-                foreach (FaceDirection direction in _cullingFlags)
+                foreach (FaceDirection direction in FaceDirections.Array)
                 {
                     ChunkFaceBuilder faceBuilder = _faceBuilders[direction];
 
@@ -78,20 +77,23 @@ namespace Project.World.Generation.Chunks
 
             private void ProcessBlockFaces(BlockMesh blockMesh)
             {
-                foreach (FaceDirection direction in _cullingFlags)
+                foreach (FaceDirection direction in FaceDirections.Array)
                 {
                     BlockFaceInfo info = _context.FetchFaceInfo(direction);
+                    ChunkFaceBuilder faceBuilder = _faceBuilders[direction];
+                    BlockFace face = blockMesh?.Faces[direction];
+
+                    if (info.IsOnEdge && _context.TransparencyTester.IsTransparent(face))
+                        faceBuilder.AddTransparentFace();
                     
-                    if (info.IsCovered)
+                    if (!_cullingFlags[direction])
+                        continue;
+                    
+                    if (info.IsCovered || face is null)
                         continue;
 
                     Vector3 position = _context.Handle.ToVector();
-                    BlockFace face = blockMesh.Faces[direction];
-                    bool transparentOnEdge = info.IsOnEdge && _context.TransparencyTester.IsTransparent(face);
-
-                    ChunkFaceBuilder faceBuilder = _faceBuilders[direction];
-
-                    faceBuilder.AddBlockFace(position, face, _verticesScaler, transparentOnEdge);
+                    faceBuilder.AddBlockFace(position, face, _verticesScaler);
                 }
             }
 

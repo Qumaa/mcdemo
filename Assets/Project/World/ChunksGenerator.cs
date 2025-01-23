@@ -1,4 +1,5 @@
 ﻿using Project.World.Generation.Chunks;
+using UnityEngine;
 
 namespace Project.World
 {
@@ -74,14 +75,18 @@ namespace Project.World
 
             private void GenerateAndCullMeshes()
             {
-                ChunkCuller culler = new(_chunks.Center);
+                ChunkPosition center = _chunks.Center;
                 
                 foreach (LODChunk lodChunk in _chunks.Values)
                 {
                     Chunk chunk = lodChunk.Chunk;
 
                     chunk.View.SetMesh(
-                        _context._meshGenerator.Generate(chunk, _chunks, culler.GetFlags(chunk.Position))
+                        _context._meshGenerator.Generate(
+                            chunk,
+                            _chunks,
+                            ChunkCullingFlags.FromSignedDifference(center, chunk.Position)
+                        )
                     );
                 }
             }

@@ -24,7 +24,7 @@ namespace Project.World
             ChunkPosition basePosition = new(Vector3Int.zero);
             ChunkViewFactory factory = new(_prefab);
 
-            IChunksGenerator generator = new ChunksGenerator(chunkMeshGenerator, iteratorProvider, lodProvider, factory);
+            IChunksGenerator generator = new IncrementalChunksGenerator(chunkMeshGenerator, iteratorProvider, lodProvider, factory);
 
             _stopwatch.Start();
             World world = new(generator.Generate(basePosition, _chunksToGenerate));

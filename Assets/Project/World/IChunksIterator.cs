@@ -4,6 +4,6 @@ namespace Project.World
 {
     public interface IChunksIterator
     {
-        public bool TryGetNextChunk(ChunkPosition position, FaceDirection direction, out IChunk chunk);
+        bool TryGetNextChunk(ChunkPosition position, FaceDirection direction, out IChunk chunk);
     }
 }

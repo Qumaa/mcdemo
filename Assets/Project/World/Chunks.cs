@@ -22,64 +22,22 @@ namespace Project.World
 
         public bool TryGetNextChunk(ChunkPosition position, FaceDirection direction, out IChunk chunk)
         {
-            position = WorldToIndex(position);
-            int x = position.x;
-            int y = position.y;
-            int z = position.z;
-
-            switch (direction)
-            {
-                case FaceDirection.Up:
-                    if (++y < _size)
-                        goto success;
-                    break;
-
-                case FaceDirection.Down:
-                    if (--y >= 0)
-                        goto success;
-                    break;
-
-                case FaceDirection.Left:
-                    if (--x >= 0)
-                        goto success;
-                    break;
-
-                case FaceDirection.Right:
-                    if (++x < _size)
-                        goto success;
-                    break;
-
-                case FaceDirection.Forward:
-                    if (++z < _size)
-                        goto success;
-                    break;
-
-                case FaceDirection.Back:
-                    if (--z >= 0)
-                        goto success;
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
-            }
+            FlatIndexHandle handle = GetIndexHandle(position);
+            
+            if (handle.TryGetNextIndex(direction, out FlatIndexXYZ index))
+                goto success;
 
             chunk = default;
             return false;
             
             success:
-            chunk = _chunks[FlatIndex.FromXYZ(_size, x, y, z)].Chunk;
+            chunk = _chunks[index.Flat].Chunk;
             return true;
         }
 
         public int GetSize() =>
             LoadDistanceToWorldSize(Extent);
-
-        private ChunkPosition WorldToIndex(ChunkPosition position) =>
-            position.OffsetCopy(Extent);
-
-        public static int LoadDistanceToWorldSize(int loadDistance) =>
-            loadDistance > 0 ? loadDistance * 2 + 1 : 1;
-
+        
         public void Set(ChunkPosition position, LODChunk lodChunk)
         {
             position = WorldToIndex(position);
@@ -90,5 +48,20 @@ namespace Project.World
 
         public void SetDirect(FlatIndex index, LODChunk lodChunk) =>
             _chunks[index] = lodChunk;
+
+        public FlatIndexHandle GetIndexHandle(ChunkPosition position)
+        {
+            position = WorldToIndex(position);
+            return new(_size, position.x, position.y, position.z);
+        }
+
+        public ChunkPosition IndexToWorld(in FlatIndexXYZ index) =>
+            new(index.x - Extent, index.y - Extent, index.z - Extent);
+
+        private ChunkPosition WorldToIndex(ChunkPosition position) =>
+            position.OffsetCopy(Extent);
+
+        public static int LoadDistanceToWorldSize(int loadDistance) =>
+            loadDistance > 0 ? loadDistance * 2 + 1 : 1;
     }
 }

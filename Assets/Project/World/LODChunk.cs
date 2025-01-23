@@ -2,11 +2,11 @@
 
 namespace Project.World
 {
-    public struct LODChunk 
+    public readonly struct LODChunk
     {
         public readonly Chunk Chunk;
-        public ChunkLOD LOD;
-
+        public readonly ChunkLOD LOD;
+        
         public LODChunk(Chunk chunk, ChunkLOD lod)
         {
             Chunk = chunk;

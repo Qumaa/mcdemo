@@ -22,11 +22,12 @@ namespace Project.World.Generation.Terrain
 
         private static int GetHeight(int x, int z)
         {
-            const float scale = 10f;
+            const float scale = 50f;
+            const int offset = 10000;
 
-            float perlin = Mathf.PerlinNoise(x / scale, z / scale);
+            float perlin = Mathf.PerlinNoise((x + offset) / scale, (z + offset) / scale);
 
-            return 6 + (int) (6f * perlin);
+            return (int) (22f * perlin);
         }
     }
 }

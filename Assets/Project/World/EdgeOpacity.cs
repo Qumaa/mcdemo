@@ -4,13 +4,13 @@
     {
         private int _transparentBlocksCount;
 
+        public bool IsOpaque =>
+            _transparentBlocksCount is 0;
+
         public EdgeOpacity(int transparentBlocksCount) 
         {
             _transparentBlocksCount = transparentBlocksCount;
         }
-
-        public bool IsOpaque() =>
-            _transparentBlocksCount is 0;
 
         public void NotifyTransparentBlocksAdded(int added) =>
             _transparentBlocksCount += added;

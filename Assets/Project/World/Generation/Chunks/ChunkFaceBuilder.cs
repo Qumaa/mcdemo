@@ -11,14 +11,11 @@ namespace Project.World.Generation.Chunks
         private readonly List<int> _triangles = new(1536);
         private int _transparentEdgeCounter = 0;
 
-        public void AddBlockFace(Vector3 position, BlockFace face, float verticesScaler, bool transparentOnEdge)
+        public void AddBlockFace(Vector3 position, BlockFace face, float verticesScaler)
         {
             int verticesOffset = _vertices.Count;
             position *= verticesScaler;
                 
-            if (transparentOnEdge)
-                AddTransparentBlockFace();
-
             foreach (Vector3 vertex in face.Vertices)
                 _vertices.Add(position + (vertex * verticesScaler));
 
@@ -29,7 +26,7 @@ namespace Project.World.Generation.Chunks
                 _normals.Add(normal);
         }
 
-        public void AddTransparentBlockFace() =>
+        public void AddTransparentFace() =>
             _transparentEdgeCounter++;
 
         public void Clear()
@@ -43,7 +40,7 @@ namespace Project.World.Generation.Chunks
         public ChunkFace BuildMesh()
         {
             if (_vertices.Count is 0)
-                return null;
+                return new(null, new(_transparentEdgeCounter));
                 
             Mesh mesh = new()
             {

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Project.World.Generation.Blocks
 {
-    public class SixFaces<T> : IEnumerable<T>
+    public class SixFaces<T>
     {
         protected readonly T[] _faces;
 
@@ -49,11 +49,8 @@ namespace Project.World.Generation.Blocks
         public T Opposite(FaceDirection faceDirection) =>
             this[faceDirection.Opposite()];
 
-        public IEnumerator<T> GetEnumerator() =>
-            _faces.Cast<T>().GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() =>
-            _faces.GetEnumerator();
+        public Enumerator GetEnumerator() =>
+            new(this);
 
         public static SixFaces<T> FromDirectional(params Directional<T>[] faces)
         {
@@ -61,6 +58,30 @@ namespace Project.World.Generation.Blocks
 
             return new(faces);
         }
+
+        public struct Enumerator
+        {
+            private readonly SixFaces<T> _parent;
+            private int _index;
+            
+            public Enumerator(SixFaces<T> parent) 
+            {
+                _parent = parent;
+                _index = -1;
+            }
+
+            public Directional<T> Current
+            {
+                get
+                {
+                    FaceDirection direction = FaceDirections.FromInt(_index);
+                    return new(_parent[direction], direction);
+                }
+            }
+
+            public bool MoveNext() =>
+                ++_index < FaceDirections.Array.Length;
+        } 
 
         private static class Validate
         {
