@@ -20,7 +20,7 @@ namespace Project.World.Generation.Chunks
             _faceBuilders = SixFaces.Empty<ChunkFaceBuilder>();
         }
 
-        public ChunkMesh Generate(in ChunkHandle.RefReady handle)
+        public ChunkMesh Generate(in ChunkHandle handle)
         {
             int chunkSize = handle.Base.Chunk.Blocks.Size;
             GenerationScope scope = new(in handle, _faceBuilders, _blockMeshProvider, _transparencyTester);
@@ -39,7 +39,7 @@ namespace Project.World.Generation.Chunks
             private readonly SixFaces<ChunkFaceBuilder> _faceBuilders;
             private ChunkMeshGenerationContext _context;
 
-            public GenerationScope(in ChunkHandle.RefReady chunkHandle, SixFaces<ChunkFaceBuilder> faceBuilders,
+            public GenerationScope(in ChunkHandle chunkHandle, SixFaces<ChunkFaceBuilder> faceBuilders,
                 IBlockMeshProvider blockMeshProvider, ITransparencyTester transparencyTester)
             {
                 _faceBuilders = faceBuilders;

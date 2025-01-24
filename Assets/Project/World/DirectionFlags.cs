@@ -49,7 +49,7 @@ namespace Project.World
         }
 
         public Mutable MutableCopy() =>
-            new(_values);
+            new(this);
 
         public DirectionFlags Combine(in DirectionFlags other, FlagsCombination combination)
         {
@@ -107,9 +107,9 @@ namespace Project.World
         {
             private int _values;
             
-            public Mutable(int values) 
+            public Mutable(DirectionFlags parent) 
             {
-                _values = values;
+                _values = parent._values;
             }
 
             public DirectionFlags Seal() =>

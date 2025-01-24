@@ -8,13 +8,13 @@ namespace Project.World.Generation.Chunks
     [StructLayout(LayoutKind.Auto)]
     public ref struct ChunkMeshGenerationContext
     {
-        public readonly ChunkHandle.RefReady ChunkHandle;
+        public readonly ChunkHandle ChunkHandle;
         public readonly IBlockMeshProvider BlockMeshProvider;
         public readonly ITransparencyTester TransparencyTester;
             
         public FlatIndexHandle Handle;
             
-        public ChunkMeshGenerationContext(in ChunkHandle.RefReady chunkHandle,
+        public ChunkMeshGenerationContext(in ChunkHandle chunkHandle,
             IBlockMeshProvider blockMeshProvider, ITransparencyTester transparencyTester)
         {
             ChunkHandle = chunkHandle;
@@ -31,7 +31,7 @@ namespace Project.World.Generation.Chunks
 
         private bool IsCoveredByAdjacentChunk(FaceDirection direction)
         {
-            if (!ChunkHandle.TryGet(direction, out LODChunk adjacent))
+            if (!ChunkHandle.TryGetNext(direction, out LODChunk adjacent))
                 return direction is not FaceDirection.Up and not FaceDirection.Down;
 
             direction.Negate();

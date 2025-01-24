@@ -86,42 +86,42 @@ namespace Project.World
         private static int FloorToChunkSize(int worldPosition) =>
             worldPosition / _CHUNK_SIZE;
 
-        public static ChunkPosition operator -(ChunkPosition left, ChunkPosition right) =>
+        public static ChunkPosition operator -(in ChunkPosition left, in ChunkPosition right) =>
             new(
                 left.x - right.x,
                 left.y - right.y,
                 left.z - right.z
             );
 
-        public static ChunkPosition operator -(ChunkPosition left, Vector3Int right) =>
+        public static ChunkPosition operator -(in ChunkPosition left, Vector3Int right) =>
             new(
                 left.x - right.x,
                 left.y - right.y,
                 left.z - right.z
             );
 
-        public static ChunkPosition operator +(ChunkPosition left, ChunkPosition right) =>
+        public static ChunkPosition operator +(in ChunkPosition left, in ChunkPosition right) =>
             new(
                 left.x + right.x,
                 left.y + right.y,
                 left.z + right.z
             );
         
-        public static ChunkPosition operator +(ChunkPosition left, Vector3Int right) =>
+        public static ChunkPosition operator +(in ChunkPosition left, Vector3Int right) =>
             new(
                 left.x + right.x,
                 left.y + right.y,
                 left.z + right.z
             );
 
-        public static ChunkPosition operator *(ChunkPosition val, int scaler) =>
+        public static ChunkPosition operator *(in ChunkPosition val, int scaler) =>
             new(
                 val.x * scaler,
                 val.y * scaler,
                 val.z * scaler
             );
         
-        public static ChunkPosition operator /(ChunkPosition val, int divider) =>
+        public static ChunkPosition operator /(in ChunkPosition val, int divider) =>
             new(
                 val.x / divider,
                 val.y / divider,

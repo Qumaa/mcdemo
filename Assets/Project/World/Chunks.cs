@@ -3,7 +3,7 @@ using Project.World.Generation.Chunks;
 
 namespace Project.World
 {
-    public class Chunks : IChunksIterator
+    public class Chunks
     {
         private readonly LODChunk[] _chunks;
 
@@ -21,45 +21,38 @@ namespace Project.World
             _chunks = new LODChunk[Size * Size * Size];
         }
 
-        public bool TryGetNextChunk(ChunkPosition position, FaceDirection direction, out IChunk chunk)
+        public void Set(ChunkPosition position, in LODChunk lodChunk)
         {
-            FlatIndexHandle handle = GetIndexHandle(position);
-            
-            if (handle.TryGetNextIndex(direction, out FlatIndexXYZ index))
-                goto success;
+            FlatIndexXYZ index = WorldToLocal(position);
 
-            chunk = default;
-            return false;
-            
-            success:
-            chunk = _chunks[index.Flat].Chunk;
-            return true;
+            SetDirect(index.Flat, lodChunk);
         }
 
-        public void Set(ChunkPosition position, LODChunk lodChunk)
-        {
-            position = WorldToIndex(position);
-            FlatIndex index = FlatIndex.FromXYZ(Size, position.x, position.y, position.z);
-
-            SetDirect(index, lodChunk);
-        }
-
-        public void SetDirect(FlatIndex index, LODChunk lodChunk) =>
+        public void SetDirect(FlatIndex index, in LODChunk lodChunk) =>
             _chunks[index] = lodChunk;
 
-        public FlatIndexHandle GetIndexHandle(ChunkPosition position)
+        public FlatIndexHandle GetIndexHandle(in ChunkPosition position)
         {
-            position = WorldToIndex(position);
-            return new(Size, position.x, position.y, position.z);
+            FlatIndexXYZ index = WorldToLocal(position);
+            return new(Size, index.x, index.y, index.z);
         }
 
         public ChunkPosition IndexToWorld(in FlatIndexXYZ index) =>
             new(index.x - Extent, index.y - Extent, index.z - Extent);
 
-        private ChunkPosition WorldToIndex(ChunkPosition position) =>
-            position.OffsetCopy(Extent);
+        private FlatIndexXYZ WorldToLocal(ChunkPosition position)
+        {
+            position = position.OffsetCopy(Extent);
+            return new(Size, position.x, position.y, position.z);
+        }
 
-        public static int LoadDistanceToWorldSize(int loadDistance) =>
+        public LODChunk Get(in FlatIndexXYZ index) =>
+            _chunks[index.Flat];
+
+        public LODChunk GetDirect(FlatIndex index) =>
+            _chunks[index];
+
+        private static int LoadDistanceToWorldSize(int loadDistance) =>
             loadDistance > 0 ? loadDistance * 2 + 1 : 1;
     }
 }

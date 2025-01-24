@@ -2,6 +2,6 @@
 {
     public interface IChunkMeshGenerator
     {
-        ChunkMesh Generate(in ChunkHandle.RefReady handle);
+        ChunkMesh Generate(in ChunkHandle handle);
     }
 }

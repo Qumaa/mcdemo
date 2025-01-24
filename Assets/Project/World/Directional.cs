@@ -3,12 +3,12 @@
     public readonly struct Directional<T>
     {
         public readonly FaceDirection Direction;
-        public readonly T Face;
+        public readonly T Value;
 
-        public Directional(T face, FaceDirection direction)
+        public Directional(T value, FaceDirection direction)
         {
             Direction = direction;
-            Face = face;
+            Value = value;
         }
     }
 }

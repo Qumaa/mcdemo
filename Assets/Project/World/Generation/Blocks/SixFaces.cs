@@ -44,7 +44,7 @@ namespace Project.World.Generation.Blocks
         }
 
         public void AppendFace(Directional<T> face) =>
-            _faces[face.Direction.ToInt()] = face.Face;
+            _faces[face.Direction.ToInt()] = face.Value;
 
         public T Opposite(FaceDirection faceDirection) =>
             this[faceDirection.Opposite()];
