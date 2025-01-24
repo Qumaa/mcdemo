@@ -20,13 +20,13 @@ namespace Project.World.Generation.Chunks
             _faceBuilders = SixFaces.Empty<ChunkFaceBuilder>();
         }
 
-        public ChunkMesh Generate(IChunk chunk, IChunksIterator chunksIterator)
+        public ChunkMesh Generate(in ChunkHandle.RefReady handle)
         {
-            IBlocksIterator blocks = chunk.Blocks;
-            GenerationScope scope = new(_faceBuilders, chunk, chunksIterator, _blockMeshProvider, _transparencyTester);
+            int chunkSize = handle.Base.Chunk.Blocks.Size;
+            GenerationScope scope = new(in handle, _faceBuilders, _blockMeshProvider, _transparencyTester);
 
-            foreach (FlatIndexHandle handle in FlatIndexHandle.Enumerate(blocks.Size))
-                scope.AddBlock(handle);
+            foreach (FlatIndexHandle indexHandle in FlatIndexHandle.Enumerate(chunkSize))
+                scope.AddBlock(indexHandle);
 
             return scope.BuildMesh();
         }
@@ -39,14 +39,13 @@ namespace Project.World.Generation.Chunks
             private readonly SixFaces<ChunkFaceBuilder> _faceBuilders;
             private ChunkMeshGenerationContext _context;
 
-            public GenerationScope(SixFaces<ChunkFaceBuilder> faceBuilders, IChunk chunk,
-                IChunksIterator chunksIterator, IBlockMeshProvider blockMeshProvider,
-                ITransparencyTester transparencyTester)
+            public GenerationScope(in ChunkHandle.RefReady chunkHandle, SixFaces<ChunkFaceBuilder> faceBuilders,
+                IBlockMeshProvider blockMeshProvider, ITransparencyTester transparencyTester)
             {
                 _faceBuilders = faceBuilders;
-                _context = new(chunk, chunksIterator, blockMeshProvider, transparencyTester);
+                _context = new(in chunkHandle, blockMeshProvider, transparencyTester);
 
-                _verticesScaler = _CHUNK_SIZE / chunk.Blocks.Size;
+                _verticesScaler = _CHUNK_SIZE / chunkHandle.Base.Chunk.Blocks.Size;
             }
 
             public void AddBlock(FlatIndexHandle handle)
@@ -94,7 +93,7 @@ namespace Project.World.Generation.Chunks
 
             private BlockMesh GetBlockMesh()
             {
-                Block block = _context.Chunk.Blocks[_context.Handle.FlatIndex];
+                Block block = _context.ChunkHandle.Base.Chunk.Blocks[_context.Handle.FlatIndex];
                 BlockMesh mesh = _context.BlockMeshProvider.GetBlockMesh(block.Type);
                 
                 return mesh;

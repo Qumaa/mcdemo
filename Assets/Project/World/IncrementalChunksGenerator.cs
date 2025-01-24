@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Project.World.Generation.Chunks;
-using UnityEngine;
 
 namespace Project.World
 {
@@ -80,37 +79,47 @@ namespace Project.World
 
             private void GenerateMesh(ChunkPosition position)
             {
-                DirectionFlags queueFlags = EnsureAdjacentChunksState(position, out FlatIndexHandle handle);
-                Chunk chunk = _chunks.Values[handle.FlatIndex].Chunk;
-                ChunkMesh mesh = GenerateCulledMesh(chunk, DirectionFlags.FromSignedDifference(_chunks.Center, position));
+                FlatIndexHandle indexHandle = _chunks.GetIndexHandle(position);
+                ChunkHandle chunkHandle = new(_chunks.Values[indexHandle.FlatIndex]);
+                
+                DirectionFlags queueFlags = EnsureAdjacentChunksState(ref indexHandle, ref chunkHandle);
+                ChunkHandle.RefReady refReady = chunkHandle.Seal();
+                
+                ChunkMesh mesh = GenerateCulledMesh(in refReady);
 
-                EnqueueAdjacentChunks(queueFlags, mesh, handle.ToVectorInt());
+                EnqueueAdjacentChunks(queueFlags, mesh, in refReady);
             }
 
-            private DirectionFlags EnsureAdjacentChunksState(ChunkPosition position, out FlatIndexHandle handle)
+            private DirectionFlags EnsureAdjacentChunksState(ref FlatIndexHandle indexHandle, ref ChunkHandle chunkHandle)
             {
-                handle = _chunks.GetIndexHandle(position);
+                // todo: get chunkhandle from chunks
                 DirectionFlags.Mutable mutableQueueFlags = DirectionFlags.All.MutableCopy();
                 
                 foreach (FaceDirection direction in FaceDirections.Array)
                 {
-                    if (!handle.TryGetNextIndex(direction, out FlatIndexXYZ index))
+                    if (!indexHandle.TryGetNextIndex(direction, out FlatIndexXYZ index))
                     {
                         mutableQueueFlags.SetFlag(direction, false);
                         continue;
                     }
 
                     if (GetChunkState(index) is not ChunkGenerationState.PendingBlocksGeneration)
+                    {
+                        chunkHandle.Set(direction, _chunks.Values[index.Flat]);
                         continue;
-                    
+                    }
+
                     ChunkPosition generationPosition = _chunks.IndexToWorld(in index);
-                    _chunks.SetDirect(index.Flat, CreateInitializedChunk(generationPosition));
+                    LODChunk generatedChunk = CreateInitializedChunk(generationPosition);
+                    chunkHandle.Set(direction, in generatedChunk);
+                    _chunks.SetDirect(index.Flat, generatedChunk);
                 }
 
-                return mutableQueueFlags.Finish();
+                return mutableQueueFlags.Seal();
             }
 
-            private void EnqueueAdjacentChunks(DirectionFlags queueFlags, ChunkMesh mesh, Vector3Int handleVector)
+            private void EnqueueAdjacentChunks(DirectionFlags queueFlags, ChunkMesh mesh,
+                in ChunkHandle.RefReady chunkHandle)
             {
                 foreach (FaceDirection direction in queueFlags.EnumerateIncludedDirections())
                 {
@@ -119,18 +128,22 @@ namespace Project.World
                     if (face is null or {Opacity: { IsOpaque: true}})
                         continue;
                     
-                    FlatIndexXYZ index = new(_chunks.Size, handleVector + direction.ToVectorInt());
-                    ChunkGenerationState state = GetChunkState(index);
+                    if (!chunkHandle.TryGet(direction, out LODChunk adjacent))
+                        continue;
+
+                    Chunk chunk = adjacent.Chunk;
+                    ChunkGenerationState state = GetChunkState(chunk);
 
                     if (state is ChunkGenerationState.PendingMeshGeneration)
-                        EnqueueForMeshGeneration(_chunks.IndexToWorld(in index));
+                        EnqueueForMeshGeneration(chunk.Position);
                 }
             }
 
-            private ChunkGenerationState GetChunkState(FlatIndexXYZ index)
-            {
-                Chunk chunk = _chunks.Values[index.Flat].Chunk;
+            private ChunkGenerationState GetChunkState(FlatIndexXYZ index) =>
+                GetChunkState(_chunks.Values[index.Flat].Chunk);
 
+            private ChunkGenerationState GetChunkState(Chunk chunk)
+            {
                 if (chunk is null)
                     return ChunkGenerationState.PendingBlocksGeneration;
 
@@ -159,11 +172,13 @@ namespace Project.World
                     lodChunk.Chunk.Blocks
                 );
 
-            private ChunkMesh GenerateCulledMesh(Chunk chunk, DirectionFlags flags)
+            private ChunkMesh GenerateCulledMesh(in ChunkHandle.RefReady handle)
             {
-                ChunkMesh mesh = _context._meshGenerator.Generate(chunk, _chunks);
-                
+                Chunk chunk = handle.Base.Chunk;
+                ChunkMesh mesh = _context._meshGenerator.Generate(in handle);
                 chunk.View.SetMesh(mesh);
+                
+                DirectionFlags flags = DirectionFlags.FromSignedDifference(_chunks.Center, chunk.Position);
                 chunk.View.Cull(flags);
 
                 return mesh;

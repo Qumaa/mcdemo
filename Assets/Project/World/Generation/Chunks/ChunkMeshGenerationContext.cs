@@ -1,42 +1,42 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using Project.World.Generation.Blocks;
 using UnityEngine;
 
 namespace Project.World.Generation.Chunks
 {
+    [StructLayout(LayoutKind.Auto)]
     public ref struct ChunkMeshGenerationContext
     {
-        public readonly IChunk Chunk;
+        public readonly ChunkHandle.RefReady ChunkHandle;
         public readonly IBlockMeshProvider BlockMeshProvider;
         public readonly ITransparencyTester TransparencyTester;
-        private readonly IChunksIterator _chunksIterator;
             
         public FlatIndexHandle Handle;
             
-        public ChunkMeshGenerationContext(IChunk chunk, IChunksIterator chunksIterator,
+        public ChunkMeshGenerationContext(in ChunkHandle.RefReady chunkHandle,
             IBlockMeshProvider blockMeshProvider, ITransparencyTester transparencyTester)
         {
-            Chunk = chunk;
+            ChunkHandle = chunkHandle;
             BlockMeshProvider = blockMeshProvider;
             TransparencyTester = transparencyTester;
-            _chunksIterator = chunksIterator;
                 
             Handle = default;
         }
 
         public BlockFaceInfo FetchFaceInfo(FaceDirection faceDirection) =>
-            Chunk.Blocks.TryGetNextBlock(Handle, faceDirection, out Block nextBlock) ?
+            ChunkHandle.Base.Chunk.Blocks.TryGetNextBlock(Handle, faceDirection, out Block nextBlock) ?
                 new(CoveredByNextBlock(nextBlock, faceDirection), false) :
                 new(IsCoveredByAdjacentChunk(faceDirection), true);
 
         private bool IsCoveredByAdjacentChunk(FaceDirection direction)
         {
-            if (!_chunksIterator.TryGetNextChunk(Chunk.Position, direction, out IChunk adjacentChunk))
+            if (!ChunkHandle.TryGet(direction, out LODChunk adjacent))
                 return direction is not FaceDirection.Up and not FaceDirection.Down;
 
             direction.Negate();
-            IBlocksIterator blocks = Chunk.Blocks;
-            IBlocksIterator adjacentBlocks = adjacentChunk.Blocks;
+            IBlocksIterator blocks = ChunkHandle.Base.Chunk.Blocks;
+            IBlocksIterator adjacentBlocks = adjacent.Chunk.Blocks;
             Vector3Int position = Handle.ToVectorInt() + direction.ToVectorInt(blocks.Size - 1);
 
             if (adjacentBlocks.Size > blocks.Size)
@@ -49,7 +49,7 @@ namespace Project.World.Generation.Chunks
         private bool IsCoveredByLargerChunk(IBlocksIterator adjacentBlocks, Vector3Int adjacentPosition,
             FaceDirection direction)
         {
-            int adjacentBlocksNumber = adjacentBlocks.Size / Chunk.Blocks.Size;
+            int adjacentBlocksNumber = adjacentBlocks.Size / ChunkHandle.Base.Chunk.Blocks.Size;
             int offset = adjacentBlocksNumber - 1;
             adjacentPosition *= adjacentBlocksNumber;
 

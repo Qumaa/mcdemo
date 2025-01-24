@@ -112,7 +112,7 @@ namespace Project.World
                 _values = values;
             }
 
-            public DirectionFlags Finish() =>
+            public DirectionFlags Seal() =>
                 new(_values);
 
             public bool GetFlag(FaceDirection direction) =>
